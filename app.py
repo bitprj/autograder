@@ -66,7 +66,9 @@ def upload_file():
             "JSON_DATA": JSON_results,
             "jwt_token": jwt_token
         }
-
+        print(data)
+        print(json.dumps(data))
+        print(type(json.dumps(data)))
         response = requests.put(
             url=url, data=json.dumps(data),
             headers={'Content-Type': 'application/json'}

@@ -60,7 +60,7 @@ def upload_file():
 
         # parse results into JSON
         JSON_results = parseToJSON(results)
-        url = "https://a335ce4b.ngrok.io"
+        url = "https://a335ce4b.ngrok.io/checkpoints/12/submit"
         jwt_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1Nzg0NTMyMzEsImV4cCI6MTU3ODQ1NTkzMSwianRpIjoiZTI5MGJkYTYtYWYzOS00Y2IyLWEzOGItYWUxZGYyZmU4OWE5IiwiaWQiOjQsInJscyI6IlN0dWRlbnQiLCJyZl9leHAiOjE1Nzg1Mzk2MzF9.kgVPXB3fUP9e9zRjlnQJ7TO0MoaIuH0MVOTYZoQhX0Y"
         data = {
             "JSON_DATA": JSON_results,

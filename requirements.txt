@@ -1,0 +1,10 @@
+Click==7.0
+coverage==4.4
+Flask==1.1.1
+gunicorn==20.0.4
+itsdangerous==1.1.0
+Jinja2==2.10.3
+MarkupSafe==1.1.1
+okpy==1.14.19
+requests==2.12.4
+Werkzeug==0.16.0

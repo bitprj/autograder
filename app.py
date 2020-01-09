@@ -43,7 +43,9 @@ def upload():
 @app.route("/uploader/", methods=['POST'])
 def upload_file():
     try:
-        print(request.body)
+        print('\n\n\n\nAAAAAAAAAAAAAAAAAAAAAAAAAAA\n\n\n\n')
+        print(request)
+        print('\n\n\n\nAAAAAAAAAAAAAAAAAAAAAAAAAAA\n\n\n\n')
         os.chdir("./grading")
         src_file = request.files["src"]
         tests_file = request.files["tests"]
@@ -85,8 +87,9 @@ def upload_file():
         return "<h1>Error!</h1>"
 
     os.chdir("..")
+    response = 'hello it went through'
     response.headers.add('Access-Control-Allow-Origin', '*')
-    return 'hai'  # print a raw representation
+    return response  # print a raw representation
 
 
 # https://db568d2b.ngrok.io/checkpoints/14/submit PUT

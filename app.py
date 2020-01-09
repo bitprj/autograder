@@ -27,7 +27,11 @@ posts = [
 @app.route("/")
 @app.route("/home")
 def home():
-    return render_template('home.html', posts=posts)
+    print('\n\n\n\nAAAAAAAAAAAAAAAAAAAAAAAAAAA\n\n\n\n')
+    response = 'hello it went through'
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response  # print a raw representation
+    # return render_template('home.html', posts=posts)
 
 
 @app.route("/about")

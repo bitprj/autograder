@@ -1,0 +1,10 @@
+{
+    "name": "config.ok",
+    "src": [
+        "a.py",
+        "b.py"
+    ],
+    "tests": {
+        "test.py": "ok_test"
+    }
+}

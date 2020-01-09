@@ -60,21 +60,17 @@ def upload_file():
 
         # parse results into JSON
         JSON_results = parseToJSON(results)
-        url = "https://a335ce4b.ngrok.io/checkpoints/12/submit"
-        jwt_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1Nzg0NTMyMzEsImV4cCI6MTU3ODQ1NTkzMSwianRpIjoiZTI5MGJkYTYtYWYzOS00Y2IyLWEzOGItYWUxZGYyZmU4OWE5IiwiaWQiOjQsInJscyI6IlN0dWRlbnQiLCJyZl9leHAiOjE1Nzg1Mzk2MzF9.kgVPXB3fUP9e9zRjlnQJ7TO0MoaIuH0MVOTYZoQhX0Y"
+        url = "https://darlene-backend.herokuapp.com/checkpoints" + request.form["checkpoint_id"] + "/submit"
+        jwt_token = request.form["jwt_token"]
         data = {
             "JSON_DATA": JSON_results,
             "jwt_token": jwt_token
         }
-        print(data)
-        print(json.dumps(data))
-        print(type(json.dumps(data)))
+
         response = requests.put(
             url=url, data=json.dumps(data),
             headers={'Content-Type': 'application/json'}
         )
-
-        print(response)
 
         # Remove generated files
         for name in filenames:

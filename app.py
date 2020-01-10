@@ -1,5 +1,6 @@
 from grading.autograder import grade
 from flask import Flask, jsonify, render_template, request
+from flask_cors import CORS
 import json
 import requests
 import os
@@ -7,6 +8,7 @@ from utils import *
 from zipfile import ZipFile
 
 app = Flask(__name__)
+CORS(app)
 
 posts = [
     {
@@ -96,6 +98,7 @@ def upload_file():
         response.headers.add('Access-Control-Allow-Origin', '*')
         response.headers.add('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
         response.headers.add('Access-Control-Allow-Headers', 'X-PINGOTHER, Content-Type')
+        print()
         print('\n\n\n\n')
 
         # response = requests.put(

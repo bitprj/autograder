@@ -1,5 +1,5 @@
 from grading.autograder import grade
-from flask import Flask, render_template, request
+from flask import Flask, jsonify, render_template, request
 import json
 import requests
 import os
@@ -28,11 +28,27 @@ posts = [
 @app.route("/home")
 def home():
     print('\n\n\n\nAAAAAAAAAAAAAAAAAAAAAAAAAAA\n\n\n\n')
-    response = 'hello it went through'
+    response = jsonify({"message":'hello it went through'})
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response  # print a raw representation
     # return render_template('home.html', posts=posts)
 
+@app.route("/test", methods=['GET', 'POST', 'OPTIONS'])
+def test():
+    if (request.method == 'POST'):
+        f = request.files['src']
+        f2 = request.files['tests']
+
+        save_file(f)
+        save_file(f2)
+
+    print('\n\n\n\nAAAAAAAAAAAAAAAAAAAAAAAAAAA\n\n\n\n')
+    response = jsonify({"message":'hello it went through'})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+    response.headers.add('Access-Control-Allow-Headers', 'X-PINGOTHER, Content-Type')
+    return response  # print a raw representation
+    # return 'a'
 
 @app.route("/about")
 def about():
@@ -44,8 +60,10 @@ def upload():
     return render_template('upload.html', title='Upload', endpoint='/uploader')
 
 
-@app.route("/uploader/", methods=['POST'])
+@app.route("/uploader", methods=['POST'])
 def upload_file():
+    print('\n\n\n\nAAAAAAAAAAAAAAAAAAAAAAAAAAA\n\n\n\n')
+
     try:
         print('\n\n\n\nAAAAAAAAAAAAAAAAAAAAAAAAAAA\n\n\n\n')
         print(request)
@@ -74,13 +92,19 @@ def upload_file():
             "jwt_token": jwt_token
         }
 
-        response = requests.put(
-            url=url, data=json.dumps(data),
-            headers={
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            }
-        )
+        response = jsonify(data)
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+        response.headers.add('Access-Control-Allow-Headers', 'X-PINGOTHER, Content-Type')
+        print('\n\n\n\n')
+
+        # response = requests.put(
+        #     url=url, data=json.dumps(data),
+        #     headers={
+        #         'Content-Type': 'application/json',
+        #         'Access-Control-Allow-Origin': '*'
+        #     }
+        # )
 
         # Remove generated files
         for name in filenames:
@@ -91,8 +115,7 @@ def upload_file():
         return "<h1>Error!</h1>"
 
     os.chdir("..")
-    response = 'hello it went through'
-    response.headers.add('Access-Control-Allow-Origin', '*')
+
     return response  # print a raw representation
 
 

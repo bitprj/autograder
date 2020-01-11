@@ -63,6 +63,7 @@ def upload():
 
 
 @app.route("/uploader", methods=['POST'])
+@cross_origin()
 def upload_file():
     print('\n\n\n\nAAAAAAAAAAAAAAAAAAAAAAAAAAA\n\n\n\n')
 

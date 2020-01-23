@@ -5,10 +5,13 @@ test = {
         {
             "cases": [
                 {
-                    "code": ">>> # This is all inside a file called test1.test; the comments are not necessary and for documentation\n>>> # You MUST type >>> like in the Python command prompt since okpy will run this character by character\n>>> num_sides(3)\n'triangle'\n>>> # okpy compares outputs when there is no leading >>>, the 'triangle' with the source's output\n>>> # okpy will append code to import all the source files' functions so no need to import num_sides() in the test file\n"
+                    "code": ">>> add(1, 2)\n3\n>>> add(3, 4)\n7\n"
+                },
+                {
+                    "code": ">>> subtract(1, 2)\n-1\n>>> subtract(4, 3)\n1\n>>> print(\"Hi\")\nHi"
                 }
             ],
-            "setup": ">>> from a import *\n",
+            "setup": ">>> from src1 import *\n>>> from src2 import *\n",
             "type": "doctest"
         }
     ]

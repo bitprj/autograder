@@ -1,6 +1,7 @@
 import json
 import re
-from werkzeug import secure_filename
+from flask import jsonify
+from werkzeug import secure_filename, FileStorage
 from zipfile import ZipFile
 
 def extract(name):
@@ -11,13 +12,13 @@ def extract(name):
         # check if files have reserved names
         bad_names = intersection(restricted_names, extracted_names)
         if bad_names:
-            raise(Exception("Zipfile cannot contain files named {bad_names}"))
+            raise(Exception(f"Zipfile cannot contain files named {bad_names}"))
 
         zip.extractall()
 
         return extracted_names
 
-
+# no longer used
 def get_case_num(case):
 
     # First line, get case number at the end
@@ -27,6 +28,19 @@ def get_case_num(case):
     return case_num
 
 
+def get_files(src_names, test_names):
+
+    src_file_objs = []
+    test_file_objs = []
+    for filename in src_names:
+        with open(filename, 'r') as f:
+            src_file_objs.append(FileStorage(stream=f, filename=filename, content_type='application/x-python-code'))
+    for filename in test_names:
+        with open(filename, 'r') as f:
+            test_objs.append(FileStorage(stream=f, filename=filename, content_type='text/plain'))
+
+    return src_file_objs, test_file_objs
+
 def intersection(l1, l2):
     return list(set(l1) & set(l2))
 
@@ -35,32 +49,47 @@ def parseToJSON(results):
 
     results = results.split('---------------------------------------------------------------------\n')
     cases = results[1:-1]
-    parsed_cases = parse_cases(cases)
+    cases = parse_cases(cases)
+    pass_cases, fail_case = cases["pass_cases"], cases["fail_case"]
     summary = results[-1]
     num_pass, num_fail = parse_summary(summary)
 
     data = {
-        "cases": parsed_cases,
-        "results": {
-                "num_pass": num_pass,
-                "num_fail": num_fail
-        }
+        "pass_cases": pass_cases,
+        "fail_case": fail_case,
+        "num_fail": num_fail,
+        "num_pass": num_pass
     }
 
-    return json.dumps(data)
+    return json.loads(json.dumps(data))
 
 def parse_cases(cases):
 
-    parsed_cases = {}
+    parsed_cases = {
+        "pass_cases": [],
+        "fail_case":  {}
+    }
+
+    fail_case = {
+        "name":     "",
+        "output":   "",
+        "expected": ""
+    }
     for case in cases:
         # tokenize case into lines
         case = case.split('\n')
-        case_num = get_case_num(case)
-        fail_case, fail_start = parse_fail(case)
-        pass_cases = [line for line in case[2:fail_start]][:-3]
-
-        parsed_cases[case_num] = { "fail_case": fail_case, "pass_cases": pass_cases }
-
+        if case[-3] == '-- OK! --': # pass
+            parsed_cases["pass_cases"].append({
+                "name": "TODO",
+                "output": case[2:-3]
+            })
+        else: # fail
+            parsed_cases["fail_case"] = parse_fail(case)
+        #fail_case, fail_start = parse_fail(case)
+        #if fail_start:
+        #    parsed_cases
+        #pass_cases = [line for line in case[2:fail_start]][:-3]
+        #parsed_cases[case_num] = { "fail_case": fail_case, "pass_cases": pass_cases }
     return parsed_cases
 
 def parse_fail(case):
@@ -70,22 +99,21 @@ def parse_fail(case):
     except: # all tests passed
         return {}, None
 
-    # get lines detailing expected-actual fail
+    # get lines detailing expected-output fail
     error_lines = [line for line in case[error_start:] if line.startswith('#')]
 
     try:
-        divide = error_lines.index('# but got') # divides expected and actual
+        divide = error_lines.index('# but got') # divides expected and output
         expected = "".join(error_lines[1:divide])
-        actual = "".join(error_lines[divide + 1:])
+        output = "".join(error_lines[divide + 1:])
 
         # remove leading comment
         expected = expected[1:].strip()
-        actual = actual[1:].strip()
+        output = output[1:].strip()
     except:
-        raise(Exception("Could not divide expected and actual lines!"))
+        raise(Exception("Could not divide expected and output lines!"))
 
-    # minus 1 since there's one newline before error_start
-    return { "expected": expected, "actual": actual }, error_start - 1
+    return { "name": "TODO", "expected": expected, "output": output }
     
 def parse_summary(summary):
 

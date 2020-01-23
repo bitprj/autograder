@@ -100,7 +100,7 @@ def grade(src_names, test_names):
     # fork because this ignores subsequent submissions
     assign = assignment.load_assignment(args.config, args)
 
-    os.dup2(w, 1)
+    os.dup2(w, 1) # stdout goes to w
     msgs = messages.Messages()
     for name, proto in assign.protocol_map.items():
         if name == 'grading':  # only run grading protocol

@@ -1,0 +1,6 @@
+>>> subtract(1, 2)
+-1
+>>> subtract(4, 3)
+1
+>>> print("Hi")
+Hi

@@ -1,4 +1,5 @@
 __pycache__
-venv/
 .idea/
 !./grading/autograder.py
+grader/.env
+venv/

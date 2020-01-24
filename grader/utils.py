@@ -1,8 +1,8 @@
-import json
-import re
-from flask import jsonify
 from werkzeug import secure_filename, FileStorage
 from zipfile import ZipFile
+import json
+import re
+
 
 def extract(name):
     restricted_names = ['autograder.py', 'config.ok', 'test.py']
@@ -17,6 +17,7 @@ def extract(name):
         zip.extractall()
 
         return extracted_names
+
 
 # no longer used
 def get_case_num(case):
@@ -41,6 +42,7 @@ def get_files(src_names, test_names):
 
     return src_file_objs, test_file_objs
 
+
 def intersection(l1, l2):
     return list(set(l1) & set(l2))
 
@@ -62,6 +64,7 @@ def parseToJSON(results):
     }
 
     return json.loads(json.dumps(data))
+
 
 def parse_cases(cases):
 
@@ -114,7 +117,8 @@ def parse_fail(case):
         raise(Exception("Could not divide expected and output lines!"))
 
     return { "name": "TODO", "expected": expected, "output": output }
-    
+
+
 def parse_summary(summary):
 
     pass_phrase = "".join(re.findall("Passed: .*\n", summary))
@@ -124,6 +128,7 @@ def parse_summary(summary):
     num_fail = fail_phrase.split()[-1]
 
     return int(num_pass), int(num_fail)
+
 
 def save_file(zipfile):
     filename = secure_filename(zipfile.filename)

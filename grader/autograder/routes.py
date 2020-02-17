@@ -43,7 +43,7 @@ def login():
 
 
 @app.route("/uploader", methods=['POST'])
-#@jwt_required
+@jwt_required
 def upload_file():
     try:
         username = get_jwt_identity()

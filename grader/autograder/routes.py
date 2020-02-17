@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, set_access_cookies
+from grader.autograder.decorators import user_exists
 from grader import app
 from grader.utils import *
 from grading.autograder import grade
@@ -27,6 +28,7 @@ def test():
 
 
 @app.route("/login", methods=["POST"])
+@user_exists
 def login():
     form_data = request.get_json()
     username = form_data["username"]
@@ -41,7 +43,7 @@ def login():
 
 
 @app.route("/uploader", methods=['POST'])
-@jwt_required
+#@jwt_required
 def upload_file():
     try:
         username = get_jwt_identity()

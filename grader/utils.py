@@ -38,7 +38,7 @@ def get_files(src_names, test_names):
             src_file_objs.append(FileStorage(stream=f, filename=filename, content_type='application/x-python-code'))
     for filename in test_names:
         with open(filename, 'r') as f:
-            test_objs.append(FileStorage(stream=f, filename=filename, content_type='text/plain'))
+            test_file_objs.append(FileStorage(stream=f, filename=filename, content_type='text/plain'))
 
     return src_file_objs, test_file_objs
 
@@ -107,12 +107,17 @@ def parse_fail(case):
 
     try:
         divide = error_lines.index('# but got') # divides expected and output
-        expected = "".join(error_lines[1:divide])
-        output = "".join(error_lines[divide + 1:])
+        expected = ""
+        output = ""
 
-        # remove leading comment
-        expected = expected[1:].strip()
-        output = output[1:].strip()
+        # parse expected
+        for line in error_lines[1:divide]:
+            expected += line[1:].strip()
+            expected += '\n'
+        # parse output
+        for line in error_lines[divide + 1:]:
+            output += line[1:].strip()
+            output += '\n'
     except:
         raise(Exception("Could not divide expected and output lines!"))
 

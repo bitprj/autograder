@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, set_access_cookies
 from grader import app, db
 from grader.models import ActivityProgress, CheckpointProgress, Student, Submission
-from grader.autograder.decorators import user_exists
+from grader.autograder.decorators import activity_exists, checkpoint_exists, checkpoint_prog_exists, user_exists
 from grader.utils import *
 from grading.autograder import grade
 import os
@@ -39,6 +39,9 @@ def login():
 
 @app.route("/uploader", methods=['POST'])
 @jwt_required
+@activity_exists
+@checkpoint_exists
+# @checkpoint_prog_exists
 def upload_file():
     try:
         username = get_jwt_identity()
@@ -47,9 +50,6 @@ def upload_file():
                                                          student_id=student.id).first()
         checkpoint_prog = CheckpointProgress.query.filter_by(activity_progress_id=activity_prog.id,
                                                              checkpoint_id=request.form["checkpoint_id"]).first()
-        print(activity_prog)
-        print(checkpoint_prog)
-
         os.chdir("./grading")
         src_file = request.files["src"]
         tests_file = request.files["tests"]
@@ -64,7 +64,6 @@ def upload_file():
 
         # run autograder
         results = grade(src_names, test_names)
-
         # parse results into JSON
         results = parseToJSON(results)
         submission = Submission(results=results, progress_id=checkpoint_prog.id)
@@ -72,16 +71,6 @@ def upload_file():
         db.session.commit()
         checkpoint_prog.submissions.append(submission)
         db.session.commit()
-        print(results)
-
-        url = "https://darlene-backend.herokuapp.com/checkpoints" + request.form["checkpoint_id"] + "/submit"
-        jwt_token = request.form["jwt_token"]
-        data = {
-            "results": results,
-            "jwt_token": jwt_token
-        }
-
-        response = jsonify(data)
 
         for name in filenames:
             os.remove(name)
@@ -91,4 +80,6 @@ def upload_file():
         return "<h1>Error!</h1>"
 
     os.chdir("..")
-    return response  # print a raw representation
+    return {
+               "message": "Successfully ran code"
+           }, 200

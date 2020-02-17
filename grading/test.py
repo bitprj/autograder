@@ -5,10 +5,19 @@ test = {
         {
             "cases": [
                 {
-                    "code": ">>> print('a')\na\n>>> test_loop()\n1\n2\n3\n4\n>>> test_input()\nname: john"
+                    "code": ">>> square(2)\n4\n"
+                },
+                {
+                    "code": ">>> subtract(1, 2)\n-1\n>>> subtract(4, 3)\n1\n>>> print(\"Hi\")\nHi"
+                },
+                {
+                    "code": ">>> print(\"a\")\nb\n"
+                },
+                {
+                    "code": ">>> square(2)\n4\n"
                 }
             ],
-            "setup": ">>> from a import *\n",
+            "setup": ">>> from src1 import *\n>>> from src2 import *\n>>> from doMath import *\n",
             "type": "doctest"
         }
     ]

@@ -10,6 +10,7 @@ from grader.config import SECRET_KEY, SQLALCHEMY_DATABASE_URI
 app = Flask(__name__)
 
 app.config["SECRET_KEY"] = SECRET_KEY
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
 app.config["JWT_ACCESS_LIFESPAN"] = {"minutes": 45}
 app.config["JWT_REFRESH_LIFESPAN"] = {"days": 1}
 app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI

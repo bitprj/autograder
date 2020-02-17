@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, set_access_cookies
-from grader.autograder.decorators import user_exists
-from grader import app
+from grader import app, db
+from grader.models import ActivityProgress, CheckpointProgress, Student, Submission
+from grader.autograder.decorators import activity_exists, checkpoint_exists, checkpoint_prog_exists, user_exists
 from grader.utils import *
 from grading.autograder import grade
 import os
@@ -18,13 +19,7 @@ def test():
         save_file(f)
         save_file(f2)
 
-    response = jsonify({"message": 'hello it went through'})
-    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
-    response.headers.add('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
-    response.headers.add('Access-Control-Allow-Headers', 'X-PINGOTHER, Content-Type')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-
-    return response  # print a raw representation
+    return "ok"  # print a raw representation
 
 
 @app.route("/login", methods=["POST"])
@@ -44,9 +39,17 @@ def login():
 
 @app.route("/uploader", methods=['POST'])
 @jwt_required
+@activity_exists
+@checkpoint_exists
+# @checkpoint_prog_exists
 def upload_file():
     try:
         username = get_jwt_identity()
+        student = Student.query.filter_by(username=username).first()
+        activity_prog = ActivityProgress.query.filter_by(activity_id=request.form["activity_id"],
+                                                         student_id=student.id).first()
+        checkpoint_prog = CheckpointProgress.query.filter_by(activity_progress_id=activity_prog.id,
+                                                             checkpoint_id=request.form["checkpoint_id"]).first()
         os.chdir("./grading")
         src_file = request.files["src"]
         tests_file = request.files["tests"]
@@ -61,23 +64,13 @@ def upload_file():
 
         # run autograder
         results = grade(src_names, test_names)
-
         # parse results into JSON
-        JSON_results = parseToJSON(results)
-        url = "https://darlene-backend.herokuapp.com/checkpoints" + request.form["checkpoint_id"] + "/submit"
-        jwt_token = request.form["jwt_token"]
-        data = {
-            "results": JSON_results,
-            "jwt_token": jwt_token
-        }
-
-        response = jsonify(data)
-
-        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
-        response.headers.add('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
-        response.headers.add('Content-Type', 'application/json')
-        response.headers.add('Access-Control-Allow-Headers', 'X-PINGOTHER, Content-Type')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        results = parseToJSON(results)
+        submission = Submission(results=results, progress_id=checkpoint_prog.id)
+        db.session.add(submission)
+        db.session.commit()
+        checkpoint_prog.submissions.append(submission)
+        db.session.commit()
 
         for name in filenames:
             os.remove(name)
@@ -87,4 +80,6 @@ def upload_file():
         return "<h1>Error!</h1>"
 
     os.chdir("..")
-    return response  # print a raw representation
+    return {
+               "message": "Successfully ran code"
+           }, 200

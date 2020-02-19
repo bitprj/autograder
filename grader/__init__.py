@@ -3,7 +3,6 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_marshmallow import Marshmallow
 from flask_praetorian import Praetorian
-#from flask_pymongo import PyMongo
 from flask_sqlalchemy import SQLAlchemy
 from grader.config import SECRET_KEY, SQLALCHEMY_DATABASE_URI
 
@@ -21,7 +20,6 @@ app.config["JWT_ACCESS_COOKIE_PATH"] = "/"
 app.config["JWT_COOKIE_CSRF_PROTECT"] = True
 app.config['JWT_COOKIE_SECURE'] = False
 app.config["JWT_SECRET_KEY"] = SECRET_KEY
-app.config["MONGO_URI"] = SQLALCHEMY_DATABASE_URI
 
 db = SQLAlchemy(app)
 jwt = JWTManager(app)

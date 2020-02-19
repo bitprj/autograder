@@ -1,9 +1,7 @@
 {
     "name": "config.ok",
     "src": [
-        "src1.py",
-        "src2.py",
-        "doMath.py"
+        "thing.py"
     ],
     "tests": {
         "test.py": "ok_test"

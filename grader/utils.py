@@ -1,4 +1,5 @@
-from werkzeug import secure_filename, FileStorage
+from werkzeug.datastructures import FileStorage
+from werkzeug.utils import secure_filename
 from zipfile import ZipFile
 import json
 import re

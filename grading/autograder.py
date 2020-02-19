@@ -1,5 +1,4 @@
 import json
-
 from client.api import assignment
 from client.cli.common import messages
 import os

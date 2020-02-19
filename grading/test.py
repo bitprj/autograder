@@ -5,19 +5,16 @@ test = {
         {
             "cases": [
                 {
-                    "code": ">>> square(2)\n4\n"
+                    "code": ">>> mult_add(3, 0)\n0"
                 },
                 {
-                    "code": ">>> subtract(1, 2)\n-1\n>>> subtract(4, 3)\n1\n>>> print(\"Hi\")\nHi"
+                    "code": ">>> mult_add(3, -4)\n-12"
                 },
                 {
-                    "code": ">>> print(\"a\")\nb\n"
-                },
-                {
-                    "code": ">>> square(2)\n4\n"
+                    "code": ">>> mult_add(3, 4)\n12"
                 }
             ],
-            "setup": ">>> from src1 import *\n>>> from src2 import *\n>>> from doMath import *\n",
+            "setup": ">>> from thing import *\n",
             "type": "doctest"
         }
     ]

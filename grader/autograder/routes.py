@@ -1,6 +1,5 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, set_access_cookies
-from zipfile import ZipFile
 from grader import app, db
 from grader.models import ActivityProgress, CheckpointProgress, Student, Submission
 from grader.autograder.decorators import activity_exists, checkpoint_exists, checkpoint_prog_exists, user_exists
@@ -77,6 +76,4 @@ def upload_file():
     os.remove("tests.zip")
     os.chdir("..")
 
-    return {
-               "message": "Successfully ran code"
-           }, 200
+    return test_results

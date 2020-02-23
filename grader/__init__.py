@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_marshmallow import Marshmallow
@@ -21,6 +22,7 @@ app.config["JWT_COOKIE_CSRF_PROTECT"] = True
 app.config['JWT_COOKIE_SECURE'] = False
 app.config["JWT_SECRET_KEY"] = SECRET_KEY
 
+bcrypt = Bcrypt()
 db = SQLAlchemy(app)
 jwt = JWTManager(app)
 guard = Praetorian()

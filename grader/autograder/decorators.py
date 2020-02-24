@@ -3,7 +3,7 @@ from flask_jwt_extended import get_jwt_identity
 from functools import wraps
 from grader import bcrypt, guard
 from grader.autograder.schemas import user_login_schema
-from grader.autograder.utils import get_activity_prog, get_checkpoint_prog
+from grader.utils.fetch_utils import get_activity_prog, get_checkpoint_prog
 from grader.models import Activity, Checkpoint, User
 
 
@@ -48,6 +48,7 @@ def checkpoint_exists(f):
     @wraps(f)
     def wrap(*args, **kwargs):
         checkpoint = Checkpoint.query.get(request.form["checkpoint_id"])
+
         if checkpoint:
             return f(*args, **kwargs)
         else:
@@ -105,7 +106,8 @@ def is_autograder(f):
     @wraps(f)
     def wrap(*args, **kwargs):
         checkpoint = Checkpoint.query.get(request.form["checkpoint_id"])
-        if checkpoint.checkpoint_type == "Autograder":
+
+        if checkpoint.checkpoint_type == "Autograder" and checkpoint.tests_zip:
             return f(*args, **kwargs)
         else:
             return {

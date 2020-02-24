@@ -1,5 +1,5 @@
 from grader.utils.file_utils import extract, save_file
-from grader.models import ActivityProgress, CheckpointProgress, Student, User
+from grader.models import ActivityProgress, CheckpointProgress, Student
 import urllib.request
 
 

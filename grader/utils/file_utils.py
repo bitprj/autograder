@@ -2,6 +2,7 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 from zipfile import ZipFile
 import json
+import os
 import re
 
 
@@ -13,7 +14,7 @@ def extract(name):
         # check if files have reserved names
         bad_names = intersection(restricted_names, extracted_names)
         if bad_names:
-            raise(Exception(f"Zipfile cannot contain files named {bad_names}"))
+            raise (Exception(f"Zipfile cannot contain files named {bad_names}"))
 
         zip.extractall()
 
@@ -22,7 +23,6 @@ def extract(name):
 
 # no longer used
 def get_case_num(case):
-
     # First line, get case number at the end
     first_line = case[0]
     case_phrase = "".join(re.findall("Case .*", first_line))
@@ -31,7 +31,6 @@ def get_case_num(case):
 
 
 def get_files(src_names, test_names):
-
     src_file_objs = []
     test_file_objs = []
     for filename in src_names:
@@ -49,7 +48,6 @@ def intersection(l1, l2):
 
 
 def parseToJSON(results):
-
     results = results.split('---------------------------------------------------------------------\n')
     cases = results[1:-1]
     cases = parse_cases(cases)
@@ -68,46 +66,47 @@ def parseToJSON(results):
 
 
 def parse_cases(cases):
-
     parsed_cases = {
         "pass_cases": [],
-        "fail_case":  {}
+        "fail_case": {}
     }
 
     fail_case = {
-        "name":     "",
-        "output":   "",
+        "name": "",
+        "output": "",
         "expected": ""
     }
     for case in cases:
         # tokenize case into lines
         case = case.split('\n')
-        if case[-3] == '-- OK! --': # pass
+        if case[-3] == '-- OK! --':  # pass
             parsed_cases["pass_cases"].append({
                 "name": "TODO",
                 "output": case[2:-3]
             })
-        else: # fail
+        else:  # fail
             parsed_cases["fail_case"] = parse_fail(case)
-        #fail_case, fail_start = parse_fail(case)
-        #if fail_start:
+        # if fail_start:
         #    parsed_cases
-        #pass_cases = [line for line in case[2:fail_start]][:-3]
-        #parsed_cases[case_num] = { "fail_case": fail_case, "pass_cases": pass_cases }
+        # pass_cases = [line for line in case[2:fail_start]][:-3]
+        # parsed_cases[case_num] = { "fail_case": fail_case, "pass_cases": pass_cases }
     return parsed_cases
 
-def parse_fail(case):
 
-    try: # at least one test failed
+def parse_fail(case):
+    try:
+        # at least one test failed
         error_start = case.index("# Error: expected")
-    except: # all tests passed
+    except:
+        # all tests passed
         return {}, None
 
     # get lines detailing expected-output fail
     error_lines = [line for line in case[error_start:] if line.startswith('#')]
 
     try:
-        divide = error_lines.index('# but got') # divides expected and output
+        # divides expected and output
+        divide = error_lines.index('# but got')
         expected = ""
         output = ""
 
@@ -120,13 +119,12 @@ def parse_fail(case):
             output += line[1:].strip()
             output += '\n'
     except:
-        raise(Exception("Could not divide expected and output lines!"))
+        raise (Exception("Could not divide expected and output lines!"))
 
-    return { "name": "TODO", "expected": expected, "output": output }
+    return {"name": "TODO", "expected": expected, "output": output}
 
 
 def parse_summary(summary):
-
     pass_phrase = "".join(re.findall("Passed: .*\n", summary))
     fail_phrase = "".join(re.findall("Failed: .*\n", summary))
 
@@ -141,3 +139,16 @@ def save_file(zipfile):
     with open(filename, 'wb') as f:
         zipfile.save(f)
     return filename
+
+
+# Function to remove files used when testing
+def remove_files(filenames):
+    if os.path.exists("src.zip"):
+        os.remove("src.zip")
+
+    for name in filenames:
+        os.remove(name)
+    os.remove("tests.zip")
+    os.chdir("../")
+
+    return

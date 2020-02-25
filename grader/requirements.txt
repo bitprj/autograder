@@ -1,7 +1,11 @@
+bcrypt==3.1.7
 blinker==1.4
+cffi==1.14.0
 Click==7.0
+client==0.0.1
 coverage==4.4
 Flask==1.1.1
+Flask-Bcrypt==0.7.1
 flask-buzz==0.1.14
 Flask-Cors==3.0.8
 Flask-JWT-Extended==3.24.1
@@ -20,6 +24,7 @@ passlib==1.7.2
 pendulum==2.0.5
 psycopg2==2.8.4
 py-buzz==0.3.7
+pycparser==2.19
 PyJWT==1.7.1
 python-dateutil==2.8.1
 python-dotenv==0.10.5

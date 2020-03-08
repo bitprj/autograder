@@ -174,8 +174,13 @@ topic_track_reqs = db.Table("track_topic_reqs",
 
 class Activity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    contentful_id = db.Column(db.Text, nullable=False)
-    name = db.Column(db.Text, nullable=True)
+    github_id = db.Column(db.Integer, nullable=False)
+    contentful_id = db.Column(db.Text, nullable=True)
+    name = db.Column(db.Text, nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    summary = db.Column(db.Text, nullable=False)
+    difficulty = db.Column(db.String(20), nullable=False)
+    image = db.Column(db.Text, nullable=False)
     # cards keeps track of all the cards that is owned by an Activity
     cards = db.relationship("Card", cascade="all,delete", back_populates="activity")
     # modules keeps track of all of the modules that an activity belongs to
@@ -198,8 +203,13 @@ class Activity(db.Model):
     # students keep track of the student's activity progress
     students = db.relationship("ActivityProgress", back_populates="activity")
 
-    def __init__(self, contentful_id):
-        self.contentful_id = contentful_id
+    def __init__(self, github_id, name, description, summary, difficulty, image):
+        self.github_id = github_id
+        self.name = name
+        self.description = description
+        self.summary = summary
+        self.difficulty = difficulty
+        self.image = image
 
     def __repr__(self):
         return f"Activity('{self.name}')"
@@ -226,7 +236,8 @@ class Badge(db.Model):
 
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    contentful_id = db.Column(db.Text(), nullable=False)
+    contentful_id = db.Column(db.Text(), nullable=True)
+    github_raw_data = db.Column(db.Text, nullable=False)
     name = db.Column(db.Text, nullable=True)
     gems = db.Column(db.Integer, nullable=True)
     # order is a number to keep track of the order in which this card will be displayed
@@ -235,7 +246,7 @@ class Card(db.Model):
     activity_id = db.Column(db.Integer, db.ForeignKey("activity.id"))
     activity = db.relationship("Activity", back_populates="cards")
     checkpoint_id = db.Column(db.Integer, db.ForeignKey("checkpoint.id"))
-    checkpoint = db.relationship("Checkpoint", back_populates="cards")
+    checkpoint = db.relationship("Checkpoint", cascade="all,delete", back_populates="cards")
     # concepts keeps track of which concepts that the card owns
     concepts = db.relationship("Concept", secondary="card_concept_rel", back_populates="cards")
     # hints keep track of the hints that a card owns
@@ -247,8 +258,11 @@ class Card(db.Model):
     activity_unlocked_cards = db.relationship("ActivityProgress", secondary="activity_progress_unlocked_cards_rel",
                                               back_populates="cards_unlocked")
 
-    def __init__(self, contentful_id):
-        self.contentful_id = contentful_id
+    def __init__(self, github_raw_data, name, gems, order):
+        self.github_raw_data = github_raw_data
+        self.name = name
+        self.gems = gems
+        self.order = order
 
     def __repr__(self):
         return f"Card('{self.name}')"
@@ -261,7 +275,7 @@ class Checkpoint(db.Model):
     checkpoint_type = db.Column(db.Text, nullable=True)
     tests_zip = db.Column(db.Text, nullable=True)
     cards = db.relationship("Card", back_populates="checkpoint")
-    activity_progresses = db.relationship("CheckpointProgress", back_populates="checkpoint")
+    checkpoint_progresses = db.relationship("CheckpointProgress", back_populates="checkpoint")
     # mc_question keeps track of mc_question that a checkpoint owns
     mc_question = db.relationship("MCQuestion", cascade="all,delete", uselist=False, back_populates="checkpoint")
 
@@ -348,20 +362,25 @@ class Gem(db.Model):
 
 class Hint(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    contentful_id = db.Column(db.Text, nullable=False)
-    name = db.Column(db.Text, nullable=True)
-    gems = db.Column(db.Integer, nullable=True)
+    contentful_id = db.Column(db.Text, nullable=True)
+    github_raw_data = db.Column(db.Text, nullable=False)
+    name = db.Column(db.Text, nullable=False)
+    gems = db.Column(db.Integer, nullable=False)
+    order = db.Column(db.Integer, nullable=False)
     card_id = db.Column(db.Integer, db.ForeignKey("card.id"))
     card = db.relationship("Card", back_populates="hints")
     parent_hint_id = db.Column(db.Integer, db.ForeignKey("hint.id"), nullable=True)
-    hint_children = db.relationship("Hint", cascade="all,delete",
-                                    backref=db.backref('parent_hint', remote_side='Hint.id'))
+    hints = db.relationship("Hint", cascade="all,delete",
+                            backref=db.backref('parent_hint', remote_side='Hint.id'))
     # steps keep track of which steps a hint owns
     steps = db.relationship("Step", cascade="all,delete", back_populates="hint")
     activity_progresses = db.relationship("HintStatus", back_populates="hint")
 
-    def __init__(self, contentful_id):
-        self.contentful_id = contentful_id
+    def __init__(self, name, gems, order, github_raw_data):
+        self.name = name
+        self.gems = gems
+        self.order = order
+        self.github_raw_data = github_raw_data
 
     def __repr__(self):
         return f"Hint('{self.name}')"
@@ -369,10 +388,13 @@ class Hint(db.Model):
 
 class Module(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    contentful_id = db.Column(db.Text(), nullable=False)
-    name = db.Column(db.Text, nullable=True)
+    github_id = db.Column(db.Integer, nullable=False)
+    contentful_id = db.Column(db.Text(), nullable=True)
+    name = db.Column(db.Text, nullable=False)
+    description = db.Column(db.Text, nullable=False)
     # gems_needed represents the number of gems in order to pass a module
     gems_needed = db.Column(db.Integer, nullable=False)
+    image = db.Column(db.Text, nullable=False)
     # activities keeps track of all of the activities that belongs to a module
     activities = db.relationship("Activity", secondary="activity_module_rel", back_populates="modules")
     # topics keep track of all of the topics that a module belongs to
@@ -396,8 +418,12 @@ class Module(db.Model):
                                           back_populates="incomplete_modules")
     students = db.relationship("ModuleProgress", cascade="all,delete", back_populates="module")
 
-    def __init__(self, contentful_id):
-        self.contentful_id = contentful_id
+    def __init__(self, github_id, name, description, gems_needed, image):
+        self.github_id = github_id
+        self.name = name
+        self.description = description
+        self.gems_needed = gems_needed
+        self.image = image
 
     def __repr__(self):
         return f"Module('{self.name}')"
@@ -502,8 +528,10 @@ class Submission(db.Model):
 
 class Topic(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    contentful_id = db.Column(db.Text, nullable=False)
-    name = db.Column(db.Text, nullable=True)
+    github_id = db.Column(db.Integer, nullable=False)
+    contentful_id = db.Column(db.Text, nullable=True)
+    name = db.Column(db.Text, unique=True, nullable=True)
+    description = db.Column(db.Text, nullable=False)
     # modules keeps track of all of the modules that the belong to a topic
     modules = db.relationship("Module", secondary="topic_module_rel", back_populates="topics")
     # tracks keep track of all of the topics that belong to a track
@@ -526,8 +554,10 @@ class Topic(db.Model):
     students_inprogress = db.relationship("Student", secondary="student_topic_inprogress_rel",
                                           back_populates="inprogress_topics")
 
-    def __init__(self, contentful_id):
-        self.contentful_id = contentful_id
+    def __init__(self, github_id, name, description):
+        self.github_id = github_id
+        self.name = name
+        self.description = description
 
     def __repr__(self):
         return f"Topic('{self.name}')"
@@ -535,8 +565,10 @@ class Topic(db.Model):
 
 class Track(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    contentful_id = db.Column(db.Text, nullable=False)
-    name = db.Column(db.Text, nullable=True)
+    github_id = db.Column(db.Integer, nullable=False)
+    contentful_id = db.Column(db.Text, nullable=True)
+    name = db.Column(db.Text, unique=True, nullable=True)
+    description = db.Column(db.Text, nullable=False)
     # topics keep track of which topics belong to a track
     topics = db.relationship("Topic", secondary="track_topic_rel", back_populates="tracks")
     # required topics keep track of the required topics that need to be completed by the user
@@ -544,8 +576,10 @@ class Track(db.Model):
     # students keep track of which student is associated with a particular track
     students = db.relationship("Student", back_populates="current_track")
 
-    def __init__(self, contentful_id):
-        self.contentful_id = contentful_id
+    def __init__(self, github_id, name, description):
+        self.github_id = github_id
+        self.name = name
+        self.description = description
 
     def __repr__(self):
         return f"Track('{self.name}')"
@@ -701,18 +735,12 @@ class CheckpointProgress(db.Model):
     id = db.Column('id', db.Integer, primary_key=True)
     activity_progress_id = db.Column(db.Integer, db.ForeignKey("activity_progress.id"))
     checkpoint_id = db.Column(db.Integer, db.ForeignKey('checkpoint.id'))
-    contentful_id = db.Column(db.Text, nullable=False)
     student_id = db.Column(db.Integer, nullable=False)
-    image_to_receive = db.Column(db.Text, nullable=True)
-    video_to_receive = db.Column(db.Text, nullable=True)
-    test_cases_failed = db.Column(db.Integer, nullable=True)
-    test_cases_passed = db.Column(db.Integer, nullable=True)
-    short_answer_response = db.Column(db.Text, nullable=True)
-    multiple_choice_answer = db.Column(db.Text, nullable=True)
+    content = db.Column(db.Text, nullable=True)
     multiple_choice_is_correct = db.Column(db.Boolean, nullable=True, default=False)
     comment = db.Column(db.Text, nullable=True)
     is_completed = db.Column(db.Boolean, nullable=False, default=False)
-    checkpoint = db.relationship("Checkpoint", back_populates="activity_progresses")
+    checkpoint = db.relationship("Checkpoint", back_populates="checkpoint_progresses")
     activity_checkpoints_progress = db.relationship("ActivityProgress", back_populates="checkpoints")
     submissions = db.relationship("Submission", cascade="all,delete", back_populates="progress")
     # activity_passed keeps track of a failed checkpoint progress
@@ -733,8 +761,8 @@ class HintStatus(db.Model):
 
     # hint children and parent_hint_id allows a one to many relationship on itself
     parent_hint_id = db.Column(db.Integer, db.ForeignKey("hint_status.id"), nullable=True)
-    hint_children = db.relationship("HintStatus", cascade="all,delete",
-                                    backref=db.backref('parent_hint', remote_side='HintStatus.id'))
+    hints = db.relationship("HintStatus", cascade="all,delete",
+                            backref=db.backref('parent_hint', remote_side='HintStatus.id'))
     hint = db.relationship("Hint", back_populates="activity_progresses")
     activity = db.relationship("ActivityProgress", back_populates="hints")
 

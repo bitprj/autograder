@@ -8,6 +8,7 @@ def create_submission(test_results, checkpoint_prog):
     submission = Submission(results=test_results, progress_id=checkpoint_prog.id)
     db.session.add(submission)
     db.session.commit()
+    checkpoint_prog.is_completed = True
     checkpoint_prog.submissions.append(submission)
     db.session.commit()
 

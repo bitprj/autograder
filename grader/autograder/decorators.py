@@ -133,6 +133,7 @@ def user_exists(f):
             username = form_data["username"]
             password = form_data["password"]
             user = guard.authenticate(username, password)
+
             if user:
                 return f(*args, **kwargs)
             else:

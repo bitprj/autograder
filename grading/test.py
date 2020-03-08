@@ -14,7 +14,7 @@ test = {
                     "code": ">>> mult_add(3, 4)\n12"
                 }
             ],
-            "setup": ">>> from thing import *\n",
+            "setup": ">>> from thing import *\n>>> from __MACOSX/._thing import *\n",
             "type": "doctest"
         }
     ]

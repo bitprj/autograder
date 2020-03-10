@@ -5,16 +5,10 @@ test = {
         {
             "cases": [
                 {
-                    "code": ">>> mult_add(3, 0)\n0"
-                },
-                {
-                    "code": ">>> mult_add(3, -4)\n-12"
-                },
-                {
-                    "code": ">>> mult_add(3, 4)\n12"
+                    "code": ">>> def mult_add(4,4):\n\tprint(\"hello\")\n\tnum = x+y\n\treturn num"
                 }
             ],
-            "setup": ">>> from thing import *\n>>> from __MACOSX/._thing import *\n",
+            "setup": ">>> from thing import *\n",
             "type": "doctest"
         }
     ]

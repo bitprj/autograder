@@ -10,7 +10,6 @@ def extract(name):
     restricted_names = ['autograder.py', 'config.ok', 'test.py']
     with ZipFile(name, 'r') as zip:
         extracted_names = zip.namelist()
-
         # check if files have reserved names
         bad_names = intersection(restricted_names, extracted_names)
         if bad_names:

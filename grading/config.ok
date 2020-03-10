@@ -1,8 +1,7 @@
 {
     "name": "config.ok",
     "src": [
-        "thing.py",
-        "__MACOSX/._thing.py"
+        "thing.py"
     ],
     "tests": {
         "test.py": "ok_test"

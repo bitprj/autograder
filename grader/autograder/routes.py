@@ -4,12 +4,12 @@ from grader import app
 from grader.models import Student
 from grader.autograder.decorators import activity_exists, activity_prog_exists, checkpoint_exists, \
     checkpoint_prog_exists, cli_user_exists, is_autograder, user_exists
-from grader.utils.fetch_utils import get_checkpoint_prog, get_src_test_names, get_src_test_names_cli
+from grader.utils.fetch_utils import get_checkpoint_prog, get_src_test_names, get_src_test_names_cli, \
+    send_autograder_notification
 from grader.utils.create_utils import create_submission, create_token
 from grader.utils.file_utils import *
 from grading.autograder import grade
 import os
-
 
 grading_bp = Blueprint("grading", __name__)
 
@@ -56,8 +56,10 @@ def upload_file():
     filenames = get_src_test_names(checkpoint_prog, request.files)
     # Runs okPy Autograder
     results = grade(filenames[0], filenames[1])
+    print(results)
     test_results = parseToJSON(results)
     create_submission(test_results, checkpoint_prog)
+    send_autograder_notification(test_results, username, data["activity_id"], data["checkpoint_id"])
     remove_files(filenames[0] + filenames[1])
 
     return test_results
@@ -80,6 +82,7 @@ def upload_file_cli():
     results = grade(filenames[0], filenames[1])
     test_results = parseToJSON(results)
     create_submission(test_results, checkpoint_prog)
+    send_autograder_notification(test_results, data["username"], data["activity_id"], data["checkpoint_id"])
     remove_files(filenames[0] + filenames[1])
 
     return test_results

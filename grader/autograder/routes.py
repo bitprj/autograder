@@ -59,7 +59,6 @@ def upload_file():
     print(results)
     test_results = parseToJSON(results)
     create_submission(test_results, checkpoint_prog)
-    send_autograder_notification(test_results, username, data["activity_id"], data["checkpoint_id"])
     remove_files(filenames[0] + filenames[1])
 
     return test_results
@@ -82,7 +81,6 @@ def upload_file_cli():
     results = grade(filenames[0], filenames[1])
     test_results = parseToJSON(results)
     create_submission(test_results, checkpoint_prog)
-    send_autograder_notification(test_results, data["username"], data["activity_id"], data["checkpoint_id"])
     remove_files(filenames[0] + filenames[1])
 
     return test_results

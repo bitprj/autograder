@@ -61,16 +61,3 @@ def get_src_test_names_cli(checkpoint_prog, files):
     test_names = [name for name in filenames if name.endswith('.test')]
 
     return src_names, test_names
-
-
-# Function to send a pusher notification when the checkpoint is graded
-def send_autograder_notification(results, username, activity_id, checkpoint_id):
-    channel_name = username + "-grader"
-    data = {
-        "checkpoint_id": checkpoint_id,
-        "activity_id": activity_id,
-        "results": results
-    }
-    pusher_client.trigger(channel_name, 'new-record', data)
-
-    return

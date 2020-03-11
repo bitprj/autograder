@@ -47,6 +47,26 @@ def get_src_test_names(checkpoint_prog, files):
     src_names = [name for name in filenames if name.endswith('.py') and not name.startswith("_")]
     test_names = [name for name in filenames if name.endswith('.test')]
     txt_names = [name for name in filenames if name.endswith('.txt')]
+
+    # pass in input files to input.py
+    input_config_name = 'input.py'
+ 
+    # check if input configuration file passed in
+    if input_config_name in src_names:
+        # create assignment string
+        name_assignment = 'filenames = ['
+        for name in txt_names:
+            name_assignment += '"' + name + '"'
+        name_assignment += ']\n\n'
+    
+        # get original contents
+        with open(input_config_name, 'r') as f:
+            contents = f.read()
+            contents = name_assignment + contents # prepend
+        # write-back prepended contents
+        with open(input_config_name, 'w') as f:
+            f.write(contents)
+    
     test_names.sort()
 
     return src_names, test_names, txt_names

@@ -46,8 +46,10 @@ def get_src_test_names(checkpoint_prog, files):
 
     src_names = [name for name in filenames if name.endswith('.py') and not name.startswith("_")]
     test_names = [name for name in filenames if name.endswith('.test')]
+    txt_names = [name for name in filenames if name.endswith('.txt')]
+    test_names.sort()
 
-    return src_names, test_names
+    return src_names, test_names, txt_names
 
 
 # Gets ths src zip and tests zip names when students submit through a cli

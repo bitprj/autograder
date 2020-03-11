@@ -1,5 +1,4 @@
-from grader import pusher_client
-from grader.utils.file_utils import extract, save_file
+from grader.utils.file_utils import edit_input, extract, save_file
 from grader.models import ActivityProgress, CheckpointProgress, Student
 import urllib.request
 
@@ -47,10 +46,10 @@ def get_src_test_names(checkpoint_prog, files):
     src_names = [name for name in filenames if name.endswith('.py') and not name.startswith("_")]
     test_names = [name for name in filenames if name.endswith('.test')]
     txt_names = [name for name in filenames if name.endswith('.txt')]
+    txt_names.sort()
     test_names.sort()
-    print(src_names)
-    print(test_names)
-    print(txt_names)
+    edit_input(src_names, txt_names)
+
     return src_names, test_names, txt_names
 
 
@@ -63,5 +62,9 @@ def get_src_test_names_cli(checkpoint_prog, files):
 
     src_names = [name for name in filenames if name.endswith('.py')]
     test_names = [name for name in filenames if name.endswith('.test')]
+    txt_names = [name for name in filenames if name.endswith('.txt')]
+    txt_names.sort()
+    test_names.sort()
+    edit_input(src_names, txt_names)
 
     return src_names, test_names

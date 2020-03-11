@@ -1,7 +1,8 @@
 {
     "name": "config.ok",
     "src": [
-        "checkpoint1.py"
+        "input.py",
+        "main.py"
     ],
     "tests": {
         "test.py": "ok_test"

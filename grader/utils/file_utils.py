@@ -7,32 +7,19 @@ import os
 import re
 
 
-# Function to create the filenames array for the input file
-def create_fienames(txt_names):
-    name_assignment = 'filenames = ['
-    for i in range(len(txt_names)):
-        if i < len(txt_names) - 1:
-            name_assignment += '"' + txt_names[i] + '", '
-        else:
-            name_assignment += '"' + txt_names[i] + '""'
-    name_assignment = name_assignment[:-1] + ']\n\n'
-
-    return name_assignment
-
-
 # Function to edit the input.py file
 def edit_input(src_names, txt_names):
     input_config_name = 'input.py'
 
     # check if input configuration file passed in
     if input_config_name in src_names:
-        # create assignment string
-        name_assignment = create_fienames(txt_names)
+        # create filenames array
+        filenames_array = "filenames = " + str(txt_names) + "\n"
 
         # get original contents and adds the filenames array
         with open(input_config_name, 'r') as f:
             contents = f.read()
-            contents = name_assignment + contents
+            contents = filenames_array + contents
             f.close()
 
         # write-back prepended contents

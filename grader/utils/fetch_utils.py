@@ -56,8 +56,8 @@ def get_src_test_names(checkpoint_prog, files):
         # create assignment string
         name_assignment = 'filenames = ['
         for name in txt_names:
-            name_assignment += '"' + name + '"'
-        name_assignment += ']\n\n'
+            name_assignment += '"' + name + '",'
+        name_assignment = name_assignment[:-1] + ']\n\n'
     
         # get original contents
         with open(input_config_name, 'r') as f:

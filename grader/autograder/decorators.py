@@ -63,7 +63,8 @@ def checkpoint_exists(f):
 def checkpoint_prog_exists(f):
     @wraps(f)
     def wrap(*args, **kwargs):
-        username = get_jwt_identity()
+        username = request.form["username"]
+        # username = get_jwt_identity()
 
         if not username:
             data = request.form

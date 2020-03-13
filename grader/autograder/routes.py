@@ -42,14 +42,15 @@ def login():
 
 
 @app.route("/uploader", methods=['POST'])
-@jwt_required
+# @jwt_required
 @activity_exists
 @checkpoint_exists
 @checkpoint_prog_exists
 def upload_file():
     data = request.form
-    username = get_jwt_identity()
-    student = Student.query.filter_by(username=username).first()
+    # username = get_jwt_identity()
+    student = Student.query.filter_by(username=data["username"]).first()
+    # student = Student.query.filter_by(username=username).first()
     checkpoint_prog = get_checkpoint_prog(data["activity_id"], data["checkpoint_id"], student.username)
     os.chdir("./grading")
     filenames = get_src_test_names(checkpoint_prog, request.files)

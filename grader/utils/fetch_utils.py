@@ -37,7 +37,7 @@ def get_file_names(files):
 
 
 def get_src_test_names(checkpoint_prog, files):
-    src_file = files["src"]
+    src_file = files["content"]
     src_filename = save_file(src_file)
     tests_file = checkpoint_prog.checkpoint.tests_zip
     urllib.request.urlretrieve("http://" + tests_file, "tests.zip")

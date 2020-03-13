@@ -6,7 +6,6 @@ from flask_marshmallow import Marshmallow
 from flask_praetorian import Praetorian
 from flask_sqlalchemy import SQLAlchemy
 from grader.config import *
-import pusher
 
 app = Flask(__name__)
 
@@ -22,19 +21,14 @@ app.config["JWT_ACCESS_COOKIE_PATH"] = "/"
 app.config["JWT_COOKIE_CSRF_PROTECT"] = True
 app.config['JWT_COOKIE_SECURE'] = False
 app.config["JWT_SECRET_KEY"] = SECRET_KEY
+app.config["CORS_HEADERS"] = "Content-Type"
 
 bcrypt = Bcrypt()
 db = SQLAlchemy(app)
 jwt = JWTManager(app)
 guard = Praetorian()
 ma = Marshmallow()
-CORS(app, supports_credentials=True, resources={r"/*": {"origins": ["http://localhost:3000"]}})
-pusher_client = pusher.Pusher(
-    app_id=PUSHER_APP_ID,
-    key=PUSHER_KEY,
-    secret=PUSHER_SECRET,
-    cluster=PUSHER_CLUSTER,
-    ssl=True)
+CORS(app, supports_credentials=True, resources={r"/*": {"origins": ["*"]}})
 
 from grader.models import User
 

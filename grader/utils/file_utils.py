@@ -73,11 +73,17 @@ def intersection(l1, l2):
 
 def parseToJSON(results):
     results = results.split('---------------------------------------------------------------------\n')
+    summary = results[-1]
+    num_pass, num_fail = parse_summary(summary)
+
+    # all tests pass, return empty object
+    if not num_fail:
+        return {}
+
+    # a test failed, parse it
     cases = results[1:-1]
     cases = parse_cases(cases)
     pass_cases, fail_case = cases["pass_cases"], cases["fail_case"]
-    summary = results[-1]
-    num_pass, num_fail = parse_summary(summary)
 
     data = {
         "pass_cases": pass_cases,

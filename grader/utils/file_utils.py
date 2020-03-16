@@ -76,10 +76,6 @@ def parseToJSON(results):
     summary = results[-1]
     num_pass, num_fail = parse_summary(summary)
 
-    # all tests pass, return empty object
-    if not num_fail:
-        return {}
-
     # a test failed, parse it
     cases = results[1:-1]
     cases = parse_cases(cases)
@@ -87,7 +83,7 @@ def parseToJSON(results):
 
     data = {
         "pass_cases": pass_cases,
-        "fail_case": fail_case,
+        "fail_case": fail_case if num_fail else {},
         "num_fail": num_fail,
         "num_pass": num_pass
     }

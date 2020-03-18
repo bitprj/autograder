@@ -44,8 +44,8 @@ def get_src_test_names(checkpoint_prog, files):
     filenames = extract(src_filename) + extract("tests.zip")
 
     src_names = [name for name in filenames if name.endswith('.py') and not name.startswith("_")]
-    test_names = [name for name in filenames if name.endswith('.test')]
-    txt_names = [name for name in filenames if name.endswith('.txt')]
+    test_names = [name for name in filenames if name.endswith('.test') and not name.startswith("_")]
+    txt_names = [name for name in filenames if name.endswith('.txt') and not name.startswith("_")]
     txt_names.sort()
     test_names.sort()
     edit_input(src_names, txt_names)

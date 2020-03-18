@@ -81,9 +81,12 @@ def parseToJSON(results):
     cases = parse_cases(cases)
     pass_cases, fail_case = cases["pass_cases"], cases["fail_case"]
 
+    if not fail_case:
+        fail_case = []
+
     data = {
         "pass_cases": pass_cases,
-        "fail_case": fail_case if num_fail else {},
+        "fail_case": fail_case,
         "num_fail": num_fail,
         "num_pass": num_pass
     }
@@ -94,14 +97,9 @@ def parseToJSON(results):
 def parse_cases(cases):
     parsed_cases = {
         "pass_cases": [],
-        "fail_case": {}
+        "fail_case": []
     }
 
-    fail_case = {
-        "name": "",
-        "output": "",
-        "expected": ""
-    }
     for case in cases:
         # tokenize case into lines
         case = case.split('\n')
@@ -124,8 +122,9 @@ def parse_fail(case):
         # at least one test failed
         error_start = case.index("# Error: expected")
     except:
+        return []
         # all tests passed
-        return {}, None
+        # return {}, None
 
     # get lines detailing expected-output fail
     error_lines = [line for line in case[error_start:] if line.startswith('#')]

@@ -52,7 +52,12 @@ def upload_file():
     student = Student.query.filter_by(username=data["username"]).first()
     # student = Student.query.filter_by(username=username).first()
     checkpoint_prog = get_checkpoint_prog(data["activity_id"], data["checkpoint_id"], student.username)
+
+    if "grading" in os.getcwd():
+        os.chdir("..")
     os.chdir("./grading")
+
+    # index 0 returns src_names and index 1 returns tests_names
     filenames = get_src_test_names(checkpoint_prog, request.files)
     # Runs okPy Autograder
     results = grade(filenames[0], filenames[1])
@@ -73,7 +78,11 @@ def upload_file():
 def upload_file_cli():
     data = request.form
     checkpoint_prog = get_checkpoint_prog(data["activity_id"], data["checkpoint_id"], data["username"])
+
+    if "grading" in os.getcwd():
+        os.chdir("..")
     os.chdir("./grading")
+
     # index 0 returns src_names and index 1 returns tests_names
     filenames = get_src_test_names_cli(checkpoint_prog, request.files)
     # Runs okPy Autograder

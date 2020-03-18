@@ -1,8 +1,10 @@
 {
     "name": "config.ok",
     "src": [
-        "input.py",
-        "main.py"
+        "src/input.py",
+        "src/main.py",
+        "src/__MACOSX/._input.py",
+        "src/__MACOSX/._main.py"
     ],
     "tests": {
         "test.py": "ok_test"

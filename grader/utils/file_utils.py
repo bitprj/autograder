@@ -8,6 +8,7 @@ import re
 
 
 # Function to edit the input.py file
+# Only executes if input.py file is in the zip file
 def edit_input(src_names, txt_names):
     input_config_name = 'input.py'
 
@@ -71,40 +72,45 @@ def intersection(l1, l2):
     return list(set(l1) & set(l2))
 
 
-def parseToJSON(results):
+def parseToJSON(results, test_names):
     results = results.split('---------------------------------------------------------------------\n')
     summary = results[-1]
     num_pass, num_fail = parse_summary(summary)
 
     # a test failed, parse it
     cases = results[1:-1]
-    cases = parse_cases(cases)
+    cases = parse_cases(cases, test_names)
     pass_cases, fail_case = cases["pass_cases"], cases["fail_case"]
 
-    data = {
-        "pass_cases": pass_cases,
-        "fail_case": fail_case,
-        "num_fail": num_fail,
-        "num_pass": num_pass
-    }
+    if not pass_cases and not fail_case:
+        data = {"error": "Pleases double check the files that you sent"}
+    else:
+        data = {
+            "pass_cases": pass_cases,
+            "fail_case": fail_case,
+            "num_fail": num_fail,
+            "num_pass": num_pass
+        }
 
     return json.loads(json.dumps(data))
 
 
-def parse_cases(cases):
+def parse_cases(cases, test_names):
     parsed_cases = {
         "pass_cases": [],
         "fail_case": {}
     }
-
+    i = 0
     for case in cases:
         # tokenize case into lines
         case = case.split('\n')
         if case[-3] == '-- OK! --':  # pass
             parsed_cases["pass_cases"].append({
-                "name": "TODO",
+                # "name": "TODO",
+                "name": test_names[i],
                 "output": case[2:-3]
             })
+            i += 1
         else:  # fail
             parsed_cases["fail_case"] = parse_fail(case)
         # if fail_start:
@@ -171,7 +177,8 @@ def remove_files(filenames):
         rmtree("__MACOSX")
 
     for name in filenames:
-        os.remove(name)
+        if os.path.exists(name):
+            os.remove(name)
     os.remove("tests.zip")
     os.chdir("../")
 

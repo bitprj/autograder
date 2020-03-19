@@ -61,7 +61,7 @@ def upload_file():
     filenames = get_src_test_names(checkpoint_prog, request.files)
     # Runs okPy Autograder
     results = grade(filenames[0], filenames[1])
-    test_results = parseToJSON(results)
+    test_results = parseToJSON(results, filenames[3])
     create_submission(test_results, checkpoint_prog)
     remove_files(filenames[0] + filenames[1] + filenames[2])
 
@@ -87,7 +87,7 @@ def upload_file_cli():
     filenames = get_src_test_names_cli(checkpoint_prog, request.files)
     # Runs okPy Autograder
     results = grade(filenames[0], filenames[1])
-    test_results = parseToJSON(results)
+    test_results = parseToJSON(results, filenames[3])
     create_submission(test_results, checkpoint_prog)
     remove_files(filenames[0] + filenames[1] + filenames[2])
 

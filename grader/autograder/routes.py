@@ -5,7 +5,7 @@ from grader.models import Student
 from grader.autograder.decorators import activity_exists, activity_prog_exists, checkpoint_exists, \
     checkpoint_prog_exists, cli_user_exists, is_autograder, user_exists
 from grader.utils.fetch_utils import get_checkpoint_prog, get_src_test_names, get_src_test_names_cli
-from grader.utils.create_utils import create_submission, create_token
+from grader.utils.create_utils import create_pusher_activity, create_submission, create_token
 from grader.utils.file_utils import *
 from grading.autograder import grade
 import os
@@ -90,5 +90,6 @@ def upload_file_cli():
     test_results = parseToJSON(results, filenames[3])
     create_submission(test_results, checkpoint_prog)
     remove_files(filenames[0] + filenames[1] + filenames[2])
+    create_pusher_activity(test_results, data["username"])
 
     return test_results

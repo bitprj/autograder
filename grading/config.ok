@@ -1,8 +1,7 @@
 {
     "name": "config.ok",
     "src": [
-        "input.py",
-        "main.py",
+        "thing.py",
         "input.py"
     ],
     "tests": {

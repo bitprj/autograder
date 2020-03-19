@@ -177,6 +177,7 @@ class Activity(db.Model):
     github_id = db.Column(db.Integer, nullable=True)
     contentful_id = db.Column(db.Text, nullable=True)
     name = db.Column(db.Text, nullable=True)
+    filename = db.Column(db.Text, nullable=True)
     description = db.Column(db.Text, nullable=True)
     summary = db.Column(db.Text, nullable=True)
     difficulty = db.Column(db.String(20), nullable=True)
@@ -203,13 +204,13 @@ class Activity(db.Model):
     # students keep track of the student's activity progress
     students = db.relationship("ActivityProgress", back_populates="activity")
 
-    def __init__(self, github_id, name, description, summary, difficulty, image):
-        self.github_id = github_id
-        self.name = name
-        self.description = description
-        self.summary = summary
-        self.difficulty = difficulty
-        self.image = image
+    # def __init__(self, filename, name, description, summary, difficulty, image):
+    #     self.filename = filename
+    #     self.name = name
+    #     self.description = description
+    #     self.summary = summary
+    #     self.difficulty = difficulty
+    #     self.image = image
 
     def __repr__(self):
         return f"Activity('{self.name}')"
@@ -259,12 +260,12 @@ class Card(db.Model):
     activity_unlocked_cards = db.relationship("ActivityProgress", secondary="activity_progress_unlocked_cards_rel",
                                               back_populates="cards_unlocked")
 
-    def __init__(self, github_raw_data, name, gems, order, filename):
-        self.github_raw_data = github_raw_data
-        self.name = name
-        self.gems = gems
-        self.order = order
-        self.filename = filename
+    # def __init__(self, github_raw_data, name, gems, order, filename):
+    #     self.github_raw_data = github_raw_data
+    #     self.name = name
+    #     self.gems = gems
+    #     self.order = order
+    #     self.filename = filename
 
     def __repr__(self):
         return f"Card('{self.name}')"
@@ -272,17 +273,31 @@ class Card(db.Model):
 
 class Checkpoint(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    contentful_id = db.Column(db.Text, nullable=False)
+    contentful_id = db.Column(db.Text, nullable=True)
     name = db.Column(db.Text, nullable=True)
+    instruction = db.Column(db.Text, nullable=True)
     checkpoint_type = db.Column(db.Text, nullable=True)
+    image = db.Column(db.Text, nullable=True)
+    filename = db.Column(db.Text, nullable=True)
+    test_cases_location = db.Column(db.Text, nullable=True)
     tests_zip = db.Column(db.Text, nullable=True)
     cards = db.relationship("Card", back_populates="checkpoint")
+    criteria = db.relationship("Criteria", cascade="all,delete", back_populates="checkpoint")
     checkpoint_progresses = db.relationship("CheckpointProgress", back_populates="checkpoint")
-    # mc_question keeps track of mc_question that a checkpoint owns
+    # choices represent the choices if the checkpoint is a multiple choice checkpoint
+    choices = db.relationship("MCChoice", cascade="all,delete", back_populates="checkpoint",
+                              foreign_keys="MCChoice.checkpoint_id")
+    correct_choice = db.relationship("MCChoice", uselist=False, cascade="all,delete",
+                                     back_populates="correct_checkpoint", foreign_keys="MCChoice.correct_checkpoint_id")
+
+    # TODO Delete later
     mc_question = db.relationship("MCQuestion", cascade="all,delete", uselist=False, back_populates="checkpoint")
 
-    def __init__(self, contentful_id):
-        self.contentful_id = contentful_id
+    # def __init__(self, name, instruction, checkpoint_type, filename):
+    #     self.name = name
+    #     self.instruction = instruction
+    #     self.checkpoint_type = checkpoint_type
+    #     self.filename = filename
 
     def __repr__(self):
         return f"Checkpoint('{self.name}')"
@@ -311,18 +326,33 @@ class Classroom(db.Model):
 
 class Concept(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    contentful_id = db.Column(db.Text(), nullable=False)
+    contentful_id = db.Column(db.Text, nullable=True)
     name = db.Column(db.Text, nullable=True)
+    filename = db.Column(db.Text, nullable=True)
     # cards keep track of which cards that a concept belongs to
     cards = db.relationship("Card", secondary="card_concept_rel", back_populates="concepts")
     # steps keep track of which steps that a concept owns
     steps = db.relationship("Step", cascade="all,delete", back_populates="concept")
 
-    def __init__(self, contentful_id):
-        self.contentful_id = contentful_id
+    # def __init__(self, name, filename):
+    #     self.name = name
+    #     self.filename = filename
 
     def __repr__(self):
         return f"Concept('{self.name}')"
+
+
+class Criteria(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=True)
+    criteria_key = db.Column(db.Text, nullable=True)
+    checkpoint_id = db.Column(db.Integer, db.ForeignKey("checkpoint.id"), nullable=True)
+    checkpoint = db.relationship("Checkpoint", back_populates="criteria")
+
+    def __init__(self, content, criteria_key, checkpoint_id):
+        self.content = content
+        self.criteria_key = criteria_key
+        self.checkpoint_id = checkpoint_id
 
 
 class Event(db.Model):
@@ -367,9 +397,9 @@ class Hint(db.Model):
     contentful_id = db.Column(db.Text, nullable=True)
     github_raw_data = db.Column(db.Text, nullable=True)
     name = db.Column(db.Text, nullable=True)
+    filename = db.Column(db.Text, nullable=True)
     gems = db.Column(db.Integer, nullable=True)
     order = db.Column(db.Integer, nullable=True)
-    filename = db.Column(db.Text, nullable=True)
     card_id = db.Column(db.Integer, db.ForeignKey("card.id"))
     card = db.relationship("Card", back_populates="hints")
     parent_hint_id = db.Column(db.Integer, db.ForeignKey("hint.id"), nullable=True)
@@ -395,8 +425,8 @@ class Module(db.Model):
     github_id = db.Column(db.Integer, nullable=True)
     contentful_id = db.Column(db.Text(), nullable=True)
     name = db.Column(db.Text, nullable=True)
+    filename = db.Column(db.Text, nullable=True)
     description = db.Column(db.Text, nullable=True)
-    # gems_needed represents the number of gems in order to pass a module
     gems_needed = db.Column(db.Integer, nullable=True)
     image = db.Column(db.Text, nullable=True)
     # activities keeps track of all of the activities that belongs to a module
@@ -422,12 +452,12 @@ class Module(db.Model):
                                           back_populates="incomplete_modules")
     students = db.relationship("ModuleProgress", cascade="all,delete", back_populates="module")
 
-    def __init__(self, github_id, name, description, gems_needed, image):
-        self.github_id = github_id
-        self.name = name
-        self.description = description
-        self.gems_needed = gems_needed
-        self.image = image
+    # def __init__(self, filename, name, description, gems_needed, image):
+    #     self.filename = filename
+    #     self.name = name
+    #     self.description = description
+    #     self.gems_needed = gems_needed
+    #     self.image = image
 
     def __repr__(self):
         return f"Module('{self.name}')"
@@ -435,8 +465,18 @@ class Module(db.Model):
 
 class MCChoice(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    contentful_id = db.Column(db.Text, nullable=False)
+    contentful_id = db.Column(db.Text, nullable=True)
     content = db.Column(db.Text, nullable=True)
+    choice_key = db.Column(db.Text, nullable=True)
+    # checkpoint_id is to reference a MCChoice as a choice for a Multiple Choice Checkpoint
+    checkpoint_id = db.Column(db.Integer, db.ForeignKey("checkpoint.id"))
+    checkpoint = db.relationship("Checkpoint", back_populates="choices", foreign_keys=[checkpoint_id])
+    # correct_checkpoint_id is to reference a MCChoice as the correct choice for a Multiple Choice Checkpoint
+    correct_checkpoint_id = db.Column(db.Integer, db.ForeignKey("checkpoint.id"))
+    correct_checkpoint = db.relationship("Checkpoint", back_populates="correct_choice",
+                                         foreign_keys=[correct_checkpoint_id])
+
+    # TODO DELETE LATER
     # mc_question is the mc_question that a MCChoice belongs to
     mc_question_id = db.Column(db.Integer, db.ForeignKey("mc_question.id"))
     mc_question = db.relationship("MCQuestion", back_populates="choices", foreign_keys=[mc_question_id])
@@ -445,13 +485,14 @@ class MCChoice(db.Model):
     correct_question = db.relationship("MCQuestion", back_populates="correct_choice",
                                        foreign_keys=[correct_question_id])
 
-    def __init__(self, contentful_id):
-        self.contentful_id = contentful_id
+    # def __init__(self, content):
+    #     self.content = content
 
     def __repr__(self):
         return f"MCChoice('{self.id}')"
 
 
+# TODO DELETE LATER
 class MCQuestion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     contentful_id = db.Column(db.Text, nullable=False)
@@ -516,10 +557,10 @@ class Step(db.Model):
     hint_id = db.Column(db.Integer, db.ForeignKey("hint.id"))
     hint = db.relationship("Hint", back_populates="steps")
 
-    def __init__(self, name, md_content, step_key):
-        self.name = name
-        self.md_content = md_content
-        self.step_key = step_key
+    # def __init__(self, name, md_content, step_key):
+    #     self.name = name
+    #     self.md_content = md_content
+    #     self.step_key = step_key
 
     def __repr__(self):
         return f"Step('{self.name}')"
@@ -528,12 +569,14 @@ class Step(db.Model):
 class Submission(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     results = db.Column(db.JSON, nullable=False)
+    date_time = db.Column(db.DateTime, nullable=True)
     progress_id = db.Column(db.Integer, db.ForeignKey("checkpoint_progress.id"), nullable=False)
     progress = db.relationship("CheckpointProgress", back_populates="submissions")
 
-    def __init__(self, results, progress_id):
+    def __init__(self, results, progress_id, date_time):
         self.results = results
         self.progress_id = progress_id
+        self.date_time = date_time
 
     def __repr__(self):
         return f"Submission('{self.id}')"
@@ -543,8 +586,10 @@ class Topic(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     github_id = db.Column(db.Integer, nullable=True)
     contentful_id = db.Column(db.Text, nullable=True)
-    name = db.Column(db.Text, unique=True, nullable=True)
+    name = db.Column(db.Text, nullable=True)
+    filename = db.Column(db.Text, nullable=True)
     description = db.Column(db.Text, nullable=True)
+    image = db.Column(db.Text, nullable=True)
     # modules keeps track of all of the modules that the belong to a topic
     modules = db.relationship("Module", secondary="topic_module_rel", back_populates="topics")
     # tracks keep track of all of the topics that belong to a track
@@ -567,10 +612,11 @@ class Topic(db.Model):
     students_inprogress = db.relationship("Student", secondary="student_topic_inprogress_rel",
                                           back_populates="inprogress_topics")
 
-    def __init__(self, github_id, name, description):
-        self.github_id = github_id
-        self.name = name
-        self.description = description
+    # def __init__(self, github_id, name, description, image):
+    #     self.github_id = github_id
+    #     self.name = name
+    #     self.description = description
+    #     self.image = image
 
     def __repr__(self):
         return f"Topic('{self.name}')"
@@ -589,10 +635,10 @@ class Track(db.Model):
     # students keep track of which student is associated with a particular track
     students = db.relationship("Student", back_populates="current_track")
 
-    def __init__(self, github_id, name, description):
-        self.github_id = github_id
-        self.name = name
-        self.description = description
+    # def __init__(self, github_id, name, description):
+    #     self.github_id = github_id
+    #     self.name = name
+    #     self.description = description
 
     def __repr__(self):
         return f"Track('{self.name}')"

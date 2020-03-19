@@ -1,3 +1,4 @@
+from datetime import datetime
 from grader import db, bcrypt
 from grader.models import Submission, User
 import secrets
@@ -5,7 +6,10 @@ import secrets
 
 # Function to create a submission and add it to the checkpoint progress
 def create_submission(test_results, checkpoint_prog):
-    submission = Submission(results=test_results, progress_id=checkpoint_prog.id)
+    submission = Submission(results=test_results,
+                            progress_id=checkpoint_prog.id,
+                            date_time=datetime.now()
+                            )
     db.session.add(submission)
     db.session.commit()
     checkpoint_prog.is_completed = True

@@ -83,7 +83,7 @@ def parseToJSON(results, test_names):
     pass_cases, fail_case = cases["pass_cases"], cases["fail_case"]
 
     if not pass_cases and not fail_case:
-        data = {"error": "Pleases double check the files that you sent"}
+        data = {"error": "Please double check your submission"}
     else:
         data = {
             "pass_cases": pass_cases,

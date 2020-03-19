@@ -796,6 +796,7 @@ class CheckpointProgress(db.Model):
     checkpoint_id = db.Column(db.Integer, db.ForeignKey('checkpoint.id'))
     student_id = db.Column(db.Integer, nullable=False)
     content = db.Column(db.Text, nullable=True)
+    cli_command = db.Column(db.Text, nullable=True)
     multiple_choice_is_correct = db.Column(db.Boolean, nullable=True, default=False)
     student_comment = db.Column(db.Text, nullable=True)
     teacher_comment = db.Column(db.Text, nullable=True)

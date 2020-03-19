@@ -2,7 +2,8 @@
     "name": "config.ok",
     "src": [
         "input.py",
-        "main.py"
+        "main.py",
+        "input.py"
     ],
     "tests": {
         "test.py": "ok_test"

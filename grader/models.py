@@ -569,7 +569,7 @@ class Step(db.Model):
 class Submission(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     results = db.Column(db.JSON, nullable=False)
-    date_time = db.Column(db.DateTime, nullable=True)
+    date_time = db.Column(db.DateTime, nullable=False)
     progress_id = db.Column(db.Integer, db.ForeignKey("checkpoint_progress.id"), nullable=False)
     progress = db.relationship("CheckpointProgress", back_populates="submissions")
 
@@ -797,7 +797,8 @@ class CheckpointProgress(db.Model):
     student_id = db.Column(db.Integer, nullable=False)
     content = db.Column(db.Text, nullable=True)
     multiple_choice_is_correct = db.Column(db.Boolean, nullable=True, default=False)
-    comment = db.Column(db.Text, nullable=True)
+    student_comment = db.Column(db.Text, nullable=True)
+    teacher_comment = db.Column(db.Text, nullable=True)
     is_completed = db.Column(db.Boolean, nullable=False, default=False)
     checkpoint = db.relationship("Checkpoint", back_populates="checkpoint_progresses")
     activity_checkpoints_progress = db.relationship("ActivityProgress", back_populates="checkpoints")

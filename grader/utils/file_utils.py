@@ -134,17 +134,15 @@ def parse_fail(case):
     try:
         # divides expected and output
         divide = error_lines.index('# but got')
-        expected = ""
-        output = ""
+        expected = []
+        output = []
 
         # parse expected
         for line in error_lines[1:divide]:
-            expected += line[1:].strip()
-            expected += '\n'
+            expected.append(line[1:].strip())
         # parse output
         for line in error_lines[divide + 1:]:
-            output += line[1:].strip()
-            output += '\n'
+            output.append(line[1:].strip())
     except:
         raise (Exception("Could not divide expected and output lines!"))
 

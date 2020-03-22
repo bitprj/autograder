@@ -24,7 +24,7 @@ def create_submission(test_results, checkpoint_prog):
     checkpoint_prog.submissions.append(submission)
     db.session.commit()
 
-    return
+    return submission
 
 
 # Function to create a token for the cli

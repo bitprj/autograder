@@ -42,6 +42,11 @@ card_concept_rel = db.Table("card_concept_rel",
                             db.Column("card_id", db.Integer, db.ForeignKey("card.id")),
                             db.Column("concept_id", db.Integer, db.ForeignKey("concept.id"))
                             )
+# This many to many relationship is used to keep track of which modules belong to a classroom and vice versa
+classroom_modules_rel = db.Table("classroom_modules_rel",
+                                 db.Column("classroom_id", db.Integer, db.ForeignKey("classroom.id")),
+                                 db.Column("module_id", db.Integer, db.ForeignKey("module.id"))
+                                 )
 
 # This many to many relationship is used to keep track of all of the topics that a student has completed
 student_topic_completed_rel = db.Table("student_topic_completed_rel",
@@ -181,36 +186,41 @@ class Activity(db.Model):
     description = db.Column(db.Text, nullable=True)
     summary = db.Column(db.Text, nullable=True)
     difficulty = db.Column(db.String(20), nullable=True)
+    is_project = db.Column(db.Boolean, nullable=True)
     image = db.Column(db.Text, nullable=True)
     # cards keeps track of all the cards that is owned by an Activity
-    cards = db.relationship("Card", cascade="all,delete", back_populates="activity")
+    cards = db.relationship("Card", cascade="all,delete", lazy="joined", back_populates="activity")
     # modules keeps track of all of the modules that an activity belongs to
-    modules = db.relationship("Module", secondary="activity_module_rel", back_populates="activities")
+    modules = db.relationship("Module", secondary="activity_module_rel", lazy="joined", back_populates="activities")
     # badge_prereqs keeps track of all the badge xp that are required to an activity
-    badge_prereqs = db.relationship("ActivityBadgePrereqs", cascade="all,delete", back_populates="activity")
+    badge_prereqs = db.relationship("ActivityBadgePrereqs", cascade="all,delete", lazy="joined",
+                                    back_populates="activity")
     # modules keeps track of all of the modules that an activity belongs to
-    module_prereqs = db.relationship("Module", secondary="activity_module_prereqs", back_populates="activity_prereqs")
+    module_prereqs = db.relationship("Module", secondary="activity_module_prereqs", lazy="joined",
+                                     back_populates="activity_prereqs")
     # students_completed keeps track of which students have completed an activity
     students_completed = db.relationship("Student", secondary="student_activity_completed_rel",
-                                         back_populates="completed_activities")
+                                         lazy="joined", back_populates="completed_activities")
     # students_incomplete keeps track of the students who have not completed an activity
     students_incomplete = db.relationship("Student", secondary="student_activity_incomplete_rel",
-                                          back_populates="incomplete_activities")
+                                          lazy="joined", back_populates="incomplete_activities")
     # students_current keeps track of the activities that a student is working on
     students_current = db.relationship("Student", secondary="student_activity_current_rel",
-                                       back_populates="current_activities")
+                                       lazy="joined", back_populates="current_activities")
     # topic_prereqs keeps track of the activities that needs to be completed before accessing a topic
-    topic_prereqs = db.relationship("Topic", secondary="topic_activity_prereqs", back_populates="activity_prereqs")
+    topic_prereqs = db.relationship("Topic", secondary="topic_activity_prereqs", lazy="joined",
+                                    back_populates="activity_prereqs")
     # students keep track of the student's activity progress
-    students = db.relationship("ActivityProgress", back_populates="activity")
+    students = db.relationship("ActivityProgress", lazy="joined", back_populates="activity")
 
-    # def __init__(self, filename, name, description, summary, difficulty, image):
-    #     self.filename = filename
-    #     self.name = name
-    #     self.description = description
-    #     self.summary = summary
-    #     self.difficulty = difficulty
-    #     self.image = image
+    def __init__(self, github_id, filename, name, description, summary, difficulty, image):
+        self.github_id = github_id
+        self.filename = filename
+        self.name = name
+        self.description = description
+        self.summary = summary
+        self.difficulty = difficulty
+        self.image = image
 
     def __repr__(self):
         return f"Activity('{self.name}')"
@@ -246,18 +256,20 @@ class Card(db.Model):
     order = db.Column(db.Integer, nullable=True)
     # activity_id and activity keeps track of which lab the card is owned by
     activity_id = db.Column(db.Integer, db.ForeignKey("activity.id"))
-    activity = db.relationship("Activity", back_populates="cards")
+    activity = db.relationship("Activity", lazy="joined", back_populates="cards")
     checkpoint_id = db.Column(db.Integer, db.ForeignKey("checkpoint.id"))
-    checkpoint = db.relationship("Checkpoint", cascade="all,delete", back_populates="cards")
+    checkpoint = db.relationship("Checkpoint", cascade="all,delete", lazy="joined", back_populates="cards")
     # concepts keeps track of which concepts that the card owns
-    concepts = db.relationship("Concept", secondary="card_concept_rel", back_populates="cards")
+    concepts = db.relationship("Concept", secondary="card_concept_rel", lazy="joined", back_populates="cards")
     # hints keep track of the hints that a card owns
-    hints = db.relationship("Hint", cascade="all,delete", back_populates="card")
+    hints = db.relationship("Hint", cascade="all,delete", lazy="joined", back_populates="card")
     # activity_locked_cards keep track of all the activities locked cards
-    activity_locked_cards = db.relationship("ActivityProgress", secondary="activity_progress_locked_cards_rel",
+    activity_locked_cards = db.relationship("ActivityProgress", lazy="joined",
+                                            secondary="activity_progress_locked_cards_rel",
                                             back_populates="cards_locked")
     # activity_locked_cards keep track of all the activities unlocked cards
-    activity_unlocked_cards = db.relationship("ActivityProgress", secondary="activity_progress_unlocked_cards_rel",
+    activity_unlocked_cards = db.relationship("ActivityProgress", lazy="joined",
+                                              secondary="activity_progress_unlocked_cards_rel",
                                               back_populates="cards_unlocked")
 
     # def __init__(self, github_raw_data, name, gems, order, filename):
@@ -313,7 +325,9 @@ class Classroom(db.Model):
     date_start = db.Column(db.Date)
     date_end = db.Column(db.Date)
     # students keep track of all the students in a classroom
-    students = db.relationship('Student', secondary=students_classes_rel, back_populates='classes')
+    students = db.relationship('Student', secondary=students_classes_rel, lazy="joined", back_populates='classes')
+    # modules keep track of all the modules that a teacher wants their students to learn
+    modules = db.relationship("Module", secondary=classroom_modules_rel, lazy="joined", back_populates="classrooms")
 
     def __init__(self, name, teacher_id, date_start, date_end):
         self.name = name
@@ -331,9 +345,9 @@ class Concept(db.Model):
     name = db.Column(db.Text, nullable=True)
     filename = db.Column(db.Text, nullable=True)
     # cards keep track of which cards that a concept belongs to
-    cards = db.relationship("Card", secondary="card_concept_rel", back_populates="concepts")
+    cards = db.relationship("Card", secondary="card_concept_rel", lazy="joined", back_populates="concepts")
     # steps keep track of which steps that a concept owns
-    steps = db.relationship("Step", cascade="all,delete", back_populates="concept")
+    steps = db.relationship("Step", cascade="all,delete", lazy="joined", back_populates="concept")
 
     # def __init__(self, name, filename):
     #     self.name = name
@@ -452,6 +466,8 @@ class Module(db.Model):
     students_incomplete = db.relationship("Student", secondary="student_module_incomplete_rel",
                                           back_populates="incomplete_modules")
     students = db.relationship("ModuleProgress", cascade="all,delete", back_populates="module")
+    # classrooms keep track of all the modules that are associated with a classroom
+    classrooms = db.relationship("Classroom", secondary=classroom_modules_rel, back_populates="modules")
 
     # def __init__(self, filename, name, description, gems_needed, image):
     #     self.filename = filename
@@ -699,6 +715,7 @@ class Admin(User):
 
 class Student(User):
     id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
+    global_gems = db.Column(db.Integer, nullable=False, default=0)
     # completed_activities keeps track of all activities that a student has completed
     completed_activities = db.relationship("Activity", secondary="student_activity_completed_rel",
                                            back_populates="students_completed")
@@ -801,7 +818,7 @@ class CheckpointProgress(db.Model):
     student_comment = db.Column(db.Text, nullable=True)
     teacher_comment = db.Column(db.Text, nullable=True)
     is_completed = db.Column(db.Boolean, nullable=False, default=False)
-    checkpoint = db.relationship("Checkpoint", back_populates="checkpoint_progresses")
+    checkpoint = db.relationship("Checkpoint", lazy="joined", back_populates="checkpoint_progresses")
     activity_checkpoints_progress = db.relationship("ActivityProgress", back_populates="checkpoints")
     submissions = db.relationship("Submission", cascade="all,delete", back_populates="progress")
     # activity_passed keeps track of a failed checkpoint progress

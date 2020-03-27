@@ -180,7 +180,7 @@ topic_track_reqs = db.Table("track_topic_reqs",
 class Activity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     github_id = db.Column(db.Integer, nullable=True)
-    contentful_id = db.Column(db.Text, nullable=True)
+    content_url = db.Column(db.Text, nullable=True)
     name = db.Column(db.Text, nullable=True)
     filename = db.Column(db.Text, nullable=True)
     description = db.Column(db.Text, nullable=True)
@@ -247,9 +247,10 @@ class Badge(db.Model):
 
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    contentful_id = db.Column(db.Text(), nullable=True)
+    content_url = db.Column(db.Text, nullable=True)
     github_raw_data = db.Column(db.Text, nullable=True)
     filename = db.Column(db.Text, nullable=True)
+    content_md_url = db.Column(db.Text, nullable=True)
     name = db.Column(db.Text, nullable=True)
     gems = db.Column(db.Integer, nullable=True)
     # order is a number to keep track of the order in which this card will be displayed
@@ -272,12 +273,13 @@ class Card(db.Model):
                                               secondary="activity_progress_unlocked_cards_rel",
                                               back_populates="cards_unlocked")
 
-    # def __init__(self, github_raw_data, name, gems, order, filename):
-    #     self.github_raw_data = github_raw_data
-    #     self.name = name
-    #     self.gems = gems
-    #     self.order = order
-    #     self.filename = filename
+    def __init__(self, github_raw_data, name, gems, order, filename, activity_id):
+        self.github_raw_data = github_raw_data
+        self.name = name
+        self.gems = gems
+        self.order = order
+        self.filename = filename
+        self.activity_id = activity_id
 
     def __repr__(self):
         return f"Card('{self.name}')"
@@ -285,7 +287,7 @@ class Card(db.Model):
 
 class Checkpoint(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    contentful_id = db.Column(db.Text, nullable=True)
+    content_url = db.Column(db.Text, nullable=True)
     name = db.Column(db.Text, nullable=True)
     instruction = db.Column(db.Text, nullable=True)
     checkpoint_type = db.Column(db.Text, nullable=True)
@@ -303,14 +305,11 @@ class Checkpoint(db.Model):
     correct_choice = db.relationship("MCChoice", uselist=False, cascade="all,delete",
                                      back_populates="correct_checkpoint", foreign_keys="MCChoice.correct_checkpoint_id")
 
-    # TODO Delete later
-    mc_question = db.relationship("MCQuestion", cascade="all,delete", uselist=False, back_populates="checkpoint")
-
-    # def __init__(self, name, instruction, checkpoint_type, filename):
-    #     self.name = name
-    #     self.instruction = instruction
-    #     self.checkpoint_type = checkpoint_type
-    #     self.filename = filename
+    def __init__(self, name, instruction, checkpoint_type, filename):
+        self.name = name
+        self.instruction = instruction
+        self.checkpoint_type = checkpoint_type
+        self.filename = filename
 
     def __repr__(self):
         return f"Checkpoint('{self.name}')"
@@ -341,7 +340,7 @@ class Classroom(db.Model):
 
 class Concept(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    contentful_id = db.Column(db.Text, nullable=True)
+    content_url = db.Column(db.Text, nullable=True)
     name = db.Column(db.Text, nullable=True)
     filename = db.Column(db.Text, nullable=True)
     # cards keep track of which cards that a concept belongs to
@@ -349,9 +348,9 @@ class Concept(db.Model):
     # steps keep track of which steps that a concept owns
     steps = db.relationship("Step", cascade="all,delete", lazy="joined", back_populates="concept")
 
-    # def __init__(self, name, filename):
-    #     self.name = name
-    #     self.filename = filename
+    def __init__(self, name, filename):
+        self.name = name
+        self.filename = filename
 
     def __repr__(self):
         return f"Concept('{self.name}')"
@@ -409,7 +408,7 @@ class Gem(db.Model):
 
 class Hint(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    contentful_id = db.Column(db.Text, nullable=True)
+    content_url = db.Column(db.Text, nullable=True)
     github_raw_data = db.Column(db.Text, nullable=True)
     name = db.Column(db.Text, nullable=True)
     filename = db.Column(db.Text, nullable=True)
@@ -437,8 +436,8 @@ class Hint(db.Model):
 
 class Module(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    content_url = db.Column(db.Text, nullable=True)
     github_id = db.Column(db.Integer, nullable=True)
-    contentful_id = db.Column(db.Text(), nullable=True)
     name = db.Column(db.Text, nullable=True)
     filename = db.Column(db.Text, nullable=True)
     description = db.Column(db.Text, nullable=True)
@@ -482,7 +481,6 @@ class Module(db.Model):
 
 class MCChoice(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    contentful_id = db.Column(db.Text, nullable=True)
     content = db.Column(db.Text, nullable=True)
     choice_key = db.Column(db.Text, nullable=True)
     # checkpoint_id is to reference a MCChoice as a choice for a Multiple Choice Checkpoint
@@ -493,42 +491,12 @@ class MCChoice(db.Model):
     correct_checkpoint = db.relationship("Checkpoint", back_populates="correct_choice",
                                          foreign_keys=[correct_checkpoint_id])
 
-    # TODO DELETE LATER
-    # mc_question is the mc_question that a MCChoice belongs to
-    mc_question_id = db.Column(db.Integer, db.ForeignKey("mc_question.id"))
-    mc_question = db.relationship("MCQuestion", back_populates="choices", foreign_keys=[mc_question_id])
-    # correct_question is the mc_question that a MCChoice belongs to and its the right answer
-    correct_question_id = db.Column(db.Integer, db.ForeignKey("mc_question.id"))
-    correct_question = db.relationship("MCQuestion", back_populates="correct_choice",
-                                       foreign_keys=[correct_question_id])
-
-    # def __init__(self, content):
-    #     self.content = content
+    def __init__(self, content, choice_key):
+        self.content = content
+        self.choice_key = choice_key
 
     def __repr__(self):
         return f"MCChoice('{self.id}')"
-
-
-# TODO DELETE LATER
-class MCQuestion(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    contentful_id = db.Column(db.Text, nullable=False)
-    description = db.Column(db.Text, nullable=True)
-    # checkpoint keeps track of the checkpoint that a multiple choice question belongs to
-    checkpoint_id = db.Column(db.Integer, db.ForeignKey("checkpoint.id"), nullable=True)
-    checkpoint = db.relationship("Checkpoint", back_populates="mc_question")
-    # Choices are the choices selected from a MCQuestion
-    choices = db.relationship("MCChoice", cascade="all,delete", back_populates="mc_question",
-                              foreign_keys="MCChoice.mc_question_id")
-    # Correct_choice is the correct choice for the MCQuestion
-    correct_choice = db.relationship("MCChoice", uselist=False, cascade="all,delete", back_populates="correct_question",
-                                     foreign_keys="MCChoice.correct_question_id")
-
-    def __init__(self, contentful_id):
-        self.contentful_id = contentful_id
-
-    def __repr__(self):
-        return f"MCQuestion('{self.id}')"
 
 
 class Organization(db.Model):
@@ -558,15 +526,13 @@ class Organization(db.Model):
 
 class Step(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    content_url = db.Column(db.Text, nullable=True)
     name = db.Column(db.Text, nullable=True)
-    md_content = db.Column(db.Text, nullable=True)
+    content = db.Column(db.Text, nullable=True)
     code_snippet = db.Column(db.Text, nullable=True)
     image = db.Column(db.Text, nullable=True)
     # step_key is used to uniquely identify the step in the database
     step_key = db.Column(db.Text, nullable=True)
-    # Delete contentful and heading later
-    contentful_id = db.Column(db.Text, nullable=True)
-    heading = db.Column(db.Text, nullable=True)
     # concept keeps track of concept that a step belongs to
     concept_id = db.Column(db.Integer, db.ForeignKey("concept.id"))
     concept = db.relationship("Concept", back_populates="steps")
@@ -574,10 +540,9 @@ class Step(db.Model):
     hint_id = db.Column(db.Integer, db.ForeignKey("hint.id"))
     hint = db.relationship("Hint", back_populates="steps")
 
-    # def __init__(self, name, md_content, step_key):
-    #     self.name = name
-    #     self.md_content = md_content
-    #     self.step_key = step_key
+    def __init__(self, name, step_key):
+        self.name = name
+        self.step_key = step_key
 
     def __repr__(self):
         return f"Step('{self.name}')"
@@ -601,8 +566,8 @@ class Submission(db.Model):
 
 class Topic(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    content_url = db.Column(db.Text, nullable=True)
     github_id = db.Column(db.Integer, nullable=True)
-    contentful_id = db.Column(db.Text, nullable=True)
     name = db.Column(db.Text, nullable=True)
     filename = db.Column(db.Text, nullable=True)
     description = db.Column(db.Text, nullable=True)
@@ -641,8 +606,8 @@ class Topic(db.Model):
 
 class Track(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    content_url = db.Column(db.Text, nullable=True)
     github_id = db.Column(db.Integer, nullable=True)
-    contentful_id = db.Column(db.Text, nullable=True)
     name = db.Column(db.Text, unique=True, nullable=True)
     description = db.Column(db.Text, nullable=True)
     # topics keep track of which topics belong to a track

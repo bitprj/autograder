@@ -48,6 +48,27 @@ classroom_modules_rel = db.Table("classroom_modules_rel",
                                  db.Column("module_id", db.Integer, db.ForeignKey("module.id"))
                                  )
 
+# This many to many relationship is used to keep track of which activities belong to module progress and vice versa
+module_progress_completed_activities_rel = db.Table("module_progress_completed_activities_rel",
+                                                    db.Column("module_progress_id", db.Integer,
+                                                              db.ForeignKey("module_progress.id")),
+                                                    db.Column("activity_id", db.Integer, db.ForeignKey("activity.id"))
+                                                    )
+
+# This many to many relationship is used to keep track of which activities belong to module progress and vice versa
+module_progress_incomplete_activities_rel = db.Table("module_progress_incomplete_activities_rel",
+                                                     db.Column("module_progress_id", db.Integer,
+                                                               db.ForeignKey("module_progress.id")),
+                                                     db.Column("activity_id", db.Integer, db.ForeignKey("activity.id"))
+                                                     )
+
+# This many to many relationship is used to keep track of which activities belong to module progress and vice versa
+module_progress_inprogress_activities_rel = db.Table("module_progress_inprogress_activities_rel",
+                                                     db.Column("module_progress_id", db.Integer,
+                                                               db.ForeignKey("module_progress.id")),
+                                                     db.Column("activity_id", db.Integer, db.ForeignKey("activity.id"))
+                                                     )
+
 # This many to many relationship is used to keep track of all of the topics that a student has completed
 student_topic_completed_rel = db.Table("student_topic_completed_rel",
                                        db.Column("student_id", db.Integer, db.ForeignKey("student.id")),
@@ -107,6 +128,27 @@ topic_module_rel = db.Table("topic_module_rel",
                             db.Column("topic_id", db.Integer, db.ForeignKey("topic.id")),
                             db.Column("module_id", db.Integer, db.ForeignKey("module.id"))
                             )
+
+# This many to many relationship is used to keep track of which modules belong to topic progress and vice versa
+topic_progress_completed_modules_rel = db.Table("topic_progress_completed_modules_rel",
+                                                db.Column("topic_progress_id", db.Integer,
+                                                          db.ForeignKey("topic_progress.id")),
+                                                db.Column("module_id", db.Integer, db.ForeignKey("module.id"))
+                                                )
+
+# This many to many relationship is used to keep track of which modules belong to topic progress and vice versa
+topic_progress_incomplete_modules_rel = db.Table("topic_progress_incomplete_modules_rel",
+                                                 db.Column("topic_progress_id", db.Integer,
+                                                           db.ForeignKey("topic_progress.id")),
+                                                 db.Column("module_id", db.Integer, db.ForeignKey("module.id"))
+                                                 )
+
+# This many to many relationship is used to keep track of which modules belong to topic progress and vice versa
+topic_progress_inprogress_modules_rel = db.Table("topic_progress_inprogress_modules_rel",
+                                                 db.Column("topic_progress_id", db.Integer,
+                                                           db.ForeignKey("topic_progress.id")),
+                                                 db.Column("module_id", db.Integer, db.ForeignKey("module.id"))
+                                                 )
 
 # This many to many relationship is used to keep track of which topics belong to track and vice versa
 track_topic_rel = db.Table("track_topic_rel",
@@ -174,7 +216,6 @@ topic_track_reqs = db.Table("track_topic_reqs",
 class Activity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     github_id = db.Column(db.Integer, nullable=True)
-    content_url = db.Column(db.Text, nullable=True)
     name = db.Column(db.Text, nullable=True)
     filename = db.Column(db.Text, nullable=True)
     description = db.Column(db.Text, nullable=True)
@@ -201,11 +242,32 @@ class Activity(db.Model):
     # students_current keeps track of the activities that a student is working on
     students_current = db.relationship("Student", secondary="student_activity_current_rel",
                                        lazy="joined", back_populates="current_activities")
+    # modules_completed keeps track of the activities completed in a module
+    modules_completed = db.relationship("ModuleProgress", secondary="module_progress_completed_activities_rel",
+                                        back_populates="completed_activities")
+    # modules_incomplete keeps track of the activities that have not been completed in a module
+    modules_incomplete = db.relationship("ModuleProgress", secondary="module_progress_incomplete_activities_rel",
+                                         back_populates="incomplete_activities")
+    # modules_inprogress keeps track of the activities are currently being worked on
+    modules_inprogress = db.relationship("ModuleProgress", secondary="module_progress_completed_activities_rel",
+                                         back_populates="inprogress_activities")
     # topic_prereqs keeps track of the activities that needs to be completed before accessing a topic
     topic_prereqs = db.relationship("Topic", secondary="topic_activity_prereqs", lazy="joined",
                                     back_populates="activity_prereqs")
+    # last_module is the module in which the module unlocked last
+    last_module = db.relationship("ModuleProgress", back_populates="last_activity_unlocked",
+                                  foreign_keys="ModuleProgress.last_activity_unlocked_id")
+    # chosen_module is the module in which the chosen_project is associated with
+    chosen_module = db.relationship("ModuleProgress", back_populates="chosen_project",
+                                    foreign_keys="ModuleProgress.chosen_project_id")
     # students keep track of the student's activity progress
     students = db.relationship("ActivityProgress", lazy="joined", back_populates="activity")
+    # This is used to keep track of the student's actions for an activity
+    actions = db.relationship("UserActivity", cascade="all,delete", back_populates="activity")
+    parent_activity_id = db.Column(db.Integer, db.ForeignKey("activity.id"), nullable=True)
+    prerequisite_activities = db.relationship("Activity",
+                                              backref=db.backref('parent_activity', remote_side='Activity.id'))
+    suggested_students = db.relationship("Student", back_populates="suggested_activity")
 
     def __init__(self, github_id, filename, name, description, summary, difficulty, image):
         self.github_id = github_id
@@ -241,7 +303,6 @@ class Badge(db.Model):
 
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    content_url = db.Column(db.Text, nullable=True)
     github_raw_data = db.Column(db.Text, nullable=True)
     filename = db.Column(db.Text, nullable=True)
     content = db.Column(db.Text, nullable=True)
@@ -281,7 +342,6 @@ class Card(db.Model):
 
 class Checkpoint(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    content_url = db.Column(db.Text, nullable=True)
     name = db.Column(db.Text, nullable=True)
     instruction = db.Column(db.Text, nullable=True)
     checkpoint_type = db.Column(db.Text, nullable=True)
@@ -298,6 +358,8 @@ class Checkpoint(db.Model):
                               foreign_keys="MCChoice.checkpoint_id")
     correct_choice = db.relationship("MCChoice", uselist=False, cascade="all,delete",
                                      back_populates="correct_checkpoint", foreign_keys="MCChoice.correct_checkpoint_id")
+    # This is used to keep track of the student's actions for a checkpoint
+    actions = db.relationship("UserCheckpoint", cascade="all,delete", back_populates="checkpoint")
 
     def __init__(self, name, instruction, checkpoint_type, filename):
         self.name = name
@@ -334,7 +396,6 @@ class Classroom(db.Model):
 
 class Concept(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    content_url = db.Column(db.Text, nullable=True)
     name = db.Column(db.Text, nullable=True)
     filename = db.Column(db.Text, nullable=True)
     # cards keep track of which cards that a concept belongs to
@@ -402,7 +463,6 @@ class Gem(db.Model):
 
 class Hint(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    content_url = db.Column(db.Text, nullable=True)
     github_raw_data = db.Column(db.Text, nullable=True)
     name = db.Column(db.Text, nullable=True)
     filename = db.Column(db.Text, nullable=True)
@@ -430,7 +490,6 @@ class Hint(db.Model):
 
 class Module(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    content_url = db.Column(db.Text, nullable=True)
     github_id = db.Column(db.Integer, nullable=True)
     name = db.Column(db.Text, nullable=True)
     filename = db.Column(db.Text, nullable=True)
@@ -461,13 +520,23 @@ class Module(db.Model):
     students = db.relationship("ModuleProgress", cascade="all,delete", back_populates="module")
     # classrooms keep track of all the modules that are associated with a classroom
     classrooms = db.relationship("Classroom", secondary=classroom_modules_rel, back_populates="modules")
+    # completed_topics keeps track of all modules completed
+    completed_topics = db.relationship("TopicProgress", secondary="topic_progress_completed_modules_rel",
+                                       back_populates="completed_modules")
+    # incomplete_topics keeps track of all the modules have not been started
+    incomplete_topics = db.relationship("TopicProgress", secondary="topic_progress_incomplete_modules_rel",
+                                        back_populates="incomplete_modules")
+    # inprogress_topics keeps track of all the modules that are currently being worked on
+    inprogress_topics = db.relationship("TopicProgress", secondary="topic_progress_inprogress_modules_rel",
+                                        back_populates="inprogress_modules")
 
-    # def __init__(self, filename, name, description, gems_needed, image):
-    #     self.filename = filename
-    #     self.name = name
-    #     self.description = description
-    #     self.gems_needed = gems_needed
-    #     self.image = image
+    def __init__(self, github_id, filename, name, description, gems_needed, image):
+        self.github_id = github_id
+        self.filename = filename
+        self.name = name
+        self.description = description
+        self.gems_needed = gems_needed
+        self.image = image
 
     def __repr__(self):
         return f"Module('{self.name}')"
@@ -520,7 +589,6 @@ class Organization(db.Model):
 
 class Step(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    content_url = db.Column(db.Text, nullable=True)
     name = db.Column(db.Text, nullable=True)
     content = db.Column(db.Text, nullable=True)
     code_snippet = db.Column(db.Text, nullable=True)
@@ -560,7 +628,6 @@ class Submission(db.Model):
 
 class Topic(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    content_url = db.Column(db.Text, nullable=True)
     github_id = db.Column(db.Integer, nullable=True)
     name = db.Column(db.Text, nullable=True)
     filename = db.Column(db.Text, nullable=True)
@@ -584,12 +651,13 @@ class Topic(db.Model):
     # students_inprogress keeps track of the students that are currently on a topic
     students_inprogress = db.relationship("Student", secondary="student_topic_inprogress_rel",
                                           back_populates="inprogress_topics")
+    students = db.relationship("TopicProgress", cascade="all,delete", back_populates="topic")
 
-    # def __init__(self, github_id, name, description, image):
-    #     self.github_id = github_id
-    #     self.name = name
-    #     self.description = description
-    #     self.image = image
+    def __init__(self, github_id, name, description, image):
+        self.github_id = github_id
+        self.name = name
+        self.description = description
+        self.image = image
 
     def __repr__(self):
         return f"Topic('{self.name}')"
@@ -597,7 +665,6 @@ class Topic(db.Model):
 
 class Track(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    content_url = db.Column(db.Text, nullable=True)
     github_id = db.Column(db.Integer, nullable=True)
     name = db.Column(db.Text, unique=True, nullable=True)
     description = db.Column(db.Text, nullable=True)
@@ -672,6 +739,7 @@ class Admin(User):
 class Student(User):
     id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
     global_gems = db.Column(db.Integer, nullable=False, default=0)
+    last_seen = db.Column(db.DateTime, nullable=True)
     # completed_activities keeps track of all activities that a student has completed
     completed_activities = db.relationship("Activity", secondary="student_activity_completed_rel",
                                            back_populates="students_completed")
@@ -680,7 +748,7 @@ class Student(User):
                                             back_populates="students_incomplete")
     # current_activities keeps track of all the activities that a student is working on
     current_activities = db.relationship("Activity", secondary="student_activity_current_rel",
-                                         back_populates="students_current")
+                                         lazy="joined", back_populates="students_current")
     # completed_modules keeps track of all modules that a student has completed
     completed_modules = db.relationship("Module", secondary="student_module_completed_rel",
                                         back_populates="students_completed")
@@ -702,9 +770,14 @@ class Student(User):
     # activity_progresses keeps track of all the progresses that a student has made on their activities
     activity_progresses = db.relationship("ActivityProgress", cascade="all,delete", back_populates="student")
     module_progresses = db.relationship("ModuleProgress", cascade="all,delete", back_populates="student")
+    topic_progresses = db.relationship("TopicProgress", cascade="all,delete", back_populates="student")
     # classes keeps track of all the student's classes
     classes = db.relationship("Classroom", secondary=students_classes_rel, back_populates="students")
     badges = db.relationship("StudentBadges", cascade="all,delete", back_populates="student")
+    actions = db.relationship("UserAction", cascade="all,delete", back_populates="student")
+    suggested_activity_id = db.Column(db.Integer, db.ForeignKey("activity.id"), nullable=True)
+    suggested_activity = db.relationship("Activity", back_populates="suggested_students")
+    suggested_module_id = db.Column(db.Integer, nullable=True)
 
     def __repr__(self):
         return f"Student('{self.id}')"
@@ -716,6 +789,39 @@ class Teacher(User):
 
     def __repr__(self):
         return f"Teacher('{self.id}')"
+
+
+class UserAction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date_time = db.Column(db.DateTime, nullable=False)
+    action = db.Column(db.Text, nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'))
+    student = db.relationship("Student", back_populates="actions")
+
+    def __init__(self, date_time, action):
+        self.date_time = date_time
+        self.action = action
+
+    def __repr__(self):
+        return f"StudentActivity('{self.action}')"
+
+
+class UserActivity(UserAction):
+    id = db.Column(db.Integer, db.ForeignKey("user_action.id"), primary_key=True)
+    activity_id = db.Column(db.Integer, db.ForeignKey("activity.id"))
+    activity = db.relationship("Activity", lazy="joined", back_populates="actions")
+
+    def __repr__(self):
+        return f"UserAction('{self.action}')"
+
+
+class UserCheckpoint(UserAction):
+    id = db.Column(db.Integer, db.ForeignKey("user_action.id"), primary_key=True)
+    checkpoint_id = db.Column(db.Integer, db.ForeignKey("checkpoint.id"))
+    checkpoint = db.relationship("Checkpoint", lazy="joined", back_populates="actions")
+
+    def __repr__(self):
+        return f"UserCheckpoint('{self.action}')"
 
 
 ################## Association Objects ########################
@@ -819,10 +925,31 @@ class ModuleBadgeWeights(db.Model):
 
 # Association object for modules and students. Used to keep track of the gems that user has accumulated for each module
 class ModuleProgress(db.Model):
-    module_id = db.Column(db.Integer, db.ForeignKey('module.id'), primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), primary_key=True)
-    gems = db.Column(db.Integer, nullable=False)
+    id = db.Column("id", db.Integer, primary_key=True)
+    module_id = db.Column(db.Integer, db.ForeignKey('module.id'))
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'))
+    is_completed = db.Column(db.Boolean, nullable=False, default=False)
+    accumulated_gems = db.Column(db.Integer, nullable=False, default=0)
+    needed_gems = db.Column(db.Integer, nullable=False , default=0)
 
+    # last_activity is the last activity unlocked in a module
+    last_activity_unlocked_id = db.Column(db.Integer, db.ForeignKey('activity.id'))
+    last_activity_unlocked = db.relationship("Activity", back_populates="last_module",
+                                             foreign_keys=[last_activity_unlocked_id])
+    # chosen_project is the project chosen for a module
+    chosen_project_id = db.Column(db.Integer, db.ForeignKey('activity.id'))
+    chosen_project = db.relationship("Activity", back_populates="chosen_module",
+                                     foreign_keys=[chosen_project_id])
+
+    # completed_activities keeps track of all activities completed
+    completed_activities = db.relationship("Activity", secondary="module_progress_completed_activities_rel",
+                                           back_populates="modules_completed")
+    # incomplete_activities keeps track of all the activities have not been started
+    incomplete_activities = db.relationship("Activity", secondary="module_progress_incomplete_activities_rel",
+                                            back_populates="modules_incomplete")
+    # inprogress_activities keeps track of all the activities that are currently being worked on
+    inprogress_activities = db.relationship("Activity", secondary="module_progress_inprogress_activities_rel",
+                                            back_populates="modules_inprogress")
     module = db.relationship("Module", back_populates="students")
     student = db.relationship("Student", back_populates="module_progresses")
 
@@ -847,3 +974,23 @@ class TopicBadgePrereqs(db.Model):
 
     badge = db.relationship("Badge", back_populates="topics")
     topic = db.relationship("Topic", back_populates="badge_prereqs")
+
+
+# Association object for topics and students. Used to keep track of the incomplete, inprogress, and completed activities
+class TopicProgress(db.Model):
+    id = db.Column("id", db.Integer, primary_key=True)
+    topic_id = db.Column(db.Integer, db.ForeignKey('topic.id'))
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'))
+    is_completed = db.Column(db.Boolean, nullable=False, default=False)
+
+    # completed_modules keeps track of all modules completed
+    completed_modules = db.relationship("Module", secondary="topic_progress_completed_modules_rel",
+                                        back_populates="completed_topics")
+    # incomplete_modules keeps track of all the modules have not been started
+    incomplete_modules = db.relationship("Module", secondary="topic_progress_incomplete_modules_rel",
+                                         back_populates="incomplete_topics")
+    # inprogress_modules keeps track of all the modules that are currently being worked on
+    inprogress_modules = db.relationship("Module", secondary="topic_progress_inprogress_modules_rel",
+                                         back_populates="inprogress_topics")
+    topic = db.relationship("Topic", back_populates="students")
+    student = db.relationship("Student", back_populates="topic_progresses")

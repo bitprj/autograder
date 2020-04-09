@@ -1,4 +1,4 @@
-from grader import db
+from github import db
 
 # RELATIONSHIPS. The below tables are used to keep track of which model belongs with a model
 # This many to many relationship is used to keep track of which activities belong to a module and vice versa
@@ -224,9 +224,9 @@ class Activity(db.Model):
     is_project = db.Column(db.Boolean, nullable=True)
     image = db.Column(db.Text, nullable=True)
     # cards keeps track of all the cards that is owned by an Activity
-    cards = db.relationship("Card", cascade="all,delete", lazy="joined", back_populates="activity")
+    cards = db.relationship("Card", cascade="all,delete", back_populates="activity")
     # modules keeps track of all of the modules that an activity belongs to
-    modules = db.relationship("Module", secondary="activity_module_rel", lazy="joined", back_populates="activities")
+    modules = db.relationship("Module", secondary="activity_module_rel", back_populates="activities")
     # badge_prereqs keeps track of all the badge xp that are required to an activity
     badge_prereqs = db.relationship("ActivityBadgePrereqs", cascade="all,delete", lazy="joined",
                                     back_populates="activity")
@@ -235,13 +235,13 @@ class Activity(db.Model):
                                      back_populates="activity_prereqs")
     # students_completed keeps track of which students have completed an activity
     students_completed = db.relationship("Student", secondary="student_activity_completed_rel",
-                                         lazy="joined", back_populates="completed_activities")
+                                         back_populates="completed_activities")
     # students_incomplete keeps track of the students who have not completed an activity
     students_incomplete = db.relationship("Student", secondary="student_activity_incomplete_rel",
-                                          lazy="joined", back_populates="incomplete_activities")
+                                          back_populates="incomplete_activities")
     # students_current keeps track of the activities that a student is working on
     students_current = db.relationship("Student", secondary="student_activity_current_rel",
-                                       lazy="joined", back_populates="current_activities")
+                                       back_populates="current_activities")
     # modules_completed keeps track of the activities completed in a module
     modules_completed = db.relationship("ModuleProgress", secondary="module_progress_completed_activities_rel",
                                         back_populates="completed_activities")
@@ -261,7 +261,7 @@ class Activity(db.Model):
     chosen_module = db.relationship("ModuleProgress", back_populates="chosen_project",
                                     foreign_keys="ModuleProgress.chosen_project_id")
     # students keep track of the student's activity progress
-    students = db.relationship("ActivityProgress", lazy="joined", back_populates="activity")
+    students = db.relationship("ActivityProgress", back_populates="activity")
     # This is used to keep track of the student's actions for an activity
     actions = db.relationship("UserActivity", cascade="all,delete", back_populates="activity")
     parent_activity_id = db.Column(db.Integer, db.ForeignKey("activity.id"), nullable=True)
@@ -312,13 +312,13 @@ class Card(db.Model):
     order = db.Column(db.Integer, nullable=True)
     # activity_id and activity keeps track of which lab the card is owned by
     activity_id = db.Column(db.Integer, db.ForeignKey("activity.id"))
-    activity = db.relationship("Activity", lazy="joined", back_populates="cards")
+    activity = db.relationship("Activity", back_populates="cards")
     checkpoint_id = db.Column(db.Integer, db.ForeignKey("checkpoint.id"))
-    checkpoint = db.relationship("Checkpoint", cascade="all,delete", lazy="joined", back_populates="cards")
+    checkpoint = db.relationship("Checkpoint", cascade="all,delete", back_populates="cards")
     # concepts keeps track of which concepts that the card owns
-    concepts = db.relationship("Concept", secondary="card_concept_rel", lazy="joined", back_populates="cards")
+    concepts = db.relationship("Concept", secondary="card_concept_rel", back_populates="cards")
     # hints keep track of the hints that a card owns
-    hints = db.relationship("Hint", cascade="all,delete", lazy="joined", back_populates="card")
+    hints = db.relationship("Hint", cascade="all,delete", back_populates="card")
     # activity_locked_cards keep track of all the activities locked cards
     activity_locked_cards = db.relationship("ActivityProgress", lazy="joined",
                                             secondary="activity_progress_locked_cards_rel",
@@ -380,9 +380,9 @@ class Classroom(db.Model):
     date_start = db.Column(db.Date)
     date_end = db.Column(db.Date)
     # students keep track of all the students in a classroom
-    students = db.relationship('Student', secondary=students_classes_rel, lazy="joined", back_populates='classes')
+    students = db.relationship('Student', secondary=students_classes_rel, back_populates='classes')
     # modules keep track of all the modules that a teacher wants their students to learn
-    modules = db.relationship("Module", secondary=classroom_modules_rel, lazy="joined", back_populates="classrooms")
+    modules = db.relationship("Module", secondary=classroom_modules_rel, back_populates="classrooms")
 
     def __init__(self, name, teacher_id, date_start, date_end):
         self.name = name
@@ -399,9 +399,9 @@ class Concept(db.Model):
     name = db.Column(db.Text, nullable=True)
     filename = db.Column(db.Text, nullable=True)
     # cards keep track of which cards that a concept belongs to
-    cards = db.relationship("Card", secondary="card_concept_rel", lazy="joined", back_populates="concepts")
+    cards = db.relationship("Card", secondary="card_concept_rel", back_populates="concepts")
     # steps keep track of which steps that a concept owns
-    steps = db.relationship("Step", cascade="all,delete", lazy="joined", back_populates="concept")
+    steps = db.relationship("Step", cascade="all,delete", back_populates="concept")
 
     def __init__(self, name, filename):
         self.name = name
@@ -686,15 +686,15 @@ class Track(db.Model):
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, nullable=False)
+    name = db.Column(db.Text, nullable=True)
     # username is the email
-    username = db.Column(db.Text, unique=True, nullable=False)
-    password = db.Column(db.Text, unique=True, nullable=False)
+    username = db.Column(db.Text, unique=True, nullable=True)
+    password = db.Column(db.Text, unique=True, nullable=True)
     token = db.Column(db.Text, unique=True, nullable=True)
     # Roles are Admin, Teacher, or Student
-    roles = db.Column(db.Text, nullable=False)
-    is_active = db.Column(db.Boolean, default=False, nullable=False)
-    location = db.Column(db.Text, nullable=False)
+    roles = db.Column(db.Text, nullable=True)
+    is_active = db.Column(db.Boolean, default=False, nullable=True)
+    location = db.Column(db.Text, nullable=True)
     image = db.Column(db.Text, nullable=True)
     organizations = db.relationship("Organization", secondary="user_organization_rel", back_populates="owners")
     organizations_active = db.relationship("Organization", secondary="user_organization_active_rel",
@@ -705,6 +705,13 @@ class User(db.Model):
     presenter_events = db.relationship("Event", secondary="user_presenter_event_rel", back_populates="presenters")
     # rsvp_events keeps track of the events that the user has rsvp to
     rsvp_events = db.relationship("Event", secondary="user_event_rel", back_populates="rsvp_list")
+    github_access_token = db.Column(db.String(255), nullable=True)
+    github_id = db.Column(db.Integer, nullable=True)
+    github_login = db.Column(db.String(255), nullable=True)
+
+
+    def __repr__(self):
+        return f"User('{self.username}')"
 
     @property
     def rolenames(self):
@@ -724,9 +731,6 @@ class User(db.Model):
     @property
     def identity(self):
         return self.id
-
-    def __repr__(self):
-        return f"User('{self.username}')"
 
 
 class Admin(User):
@@ -748,7 +752,7 @@ class Student(User):
                                             back_populates="students_incomplete")
     # current_activities keeps track of all the activities that a student is working on
     current_activities = db.relationship("Activity", secondary="student_activity_current_rel",
-                                         lazy="joined", back_populates="students_current")
+                                         back_populates="students_current")
     # completed_modules keeps track of all modules that a student has completed
     completed_modules = db.relationship("Module", secondary="student_module_completed_rel",
                                         back_populates="students_completed")
@@ -809,7 +813,7 @@ class UserAction(db.Model):
 class UserActivity(UserAction):
     id = db.Column(db.Integer, db.ForeignKey("user_action.id"), primary_key=True)
     activity_id = db.Column(db.Integer, db.ForeignKey("activity.id"))
-    activity = db.relationship("Activity", lazy="joined", back_populates="actions")
+    activity = db.relationship("Activity", back_populates="actions")
 
     def __repr__(self):
         return f"UserAction('{self.action}')"
@@ -818,7 +822,7 @@ class UserActivity(UserAction):
 class UserCheckpoint(UserAction):
     id = db.Column(db.Integer, db.ForeignKey("user_action.id"), primary_key=True)
     checkpoint_id = db.Column(db.Integer, db.ForeignKey("checkpoint.id"))
-    checkpoint = db.relationship("Checkpoint", lazy="joined", back_populates="actions")
+    checkpoint = db.relationship("Checkpoint", back_populates="actions")
 
     def __repr__(self):
         return f"UserCheckpoint('{self.action}')"
@@ -877,7 +881,7 @@ class CheckpointProgress(db.Model):
     student_comment = db.Column(db.Text, nullable=True)
     teacher_comment = db.Column(db.Text, nullable=True)
     is_completed = db.Column(db.Boolean, nullable=False, default=False)
-    checkpoint = db.relationship("Checkpoint", lazy="joined", back_populates="checkpoint_progresses")
+    checkpoint = db.relationship("Checkpoint", back_populates="checkpoint_progresses")
     activity_checkpoints_progress = db.relationship("ActivityProgress", back_populates="checkpoints")
     submissions = db.relationship("Submission", cascade="all,delete", back_populates="progress")
     # activity_passed keeps track of a failed checkpoint progress
@@ -930,7 +934,7 @@ class ModuleProgress(db.Model):
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'))
     is_completed = db.Column(db.Boolean, nullable=False, default=False)
     accumulated_gems = db.Column(db.Integer, nullable=False, default=0)
-    needed_gems = db.Column(db.Integer, nullable=False , default=0)
+    needed_gems = db.Column(db.Integer, nullable=False, default=0)
 
     # last_activity is the last activity unlocked in a module
     last_activity_unlocked_id = db.Column(db.Integer, db.ForeignKey('activity.id'))

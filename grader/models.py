@@ -1,4 +1,4 @@
-from github import db
+from grader import db
 
 # RELATIONSHIPS. The below tables are used to keep track of which model belongs with a model
 # This many to many relationship is used to keep track of which activities belong to a module and vice versa

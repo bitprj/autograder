@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, set_access_cookies
+from flask_jwt_extended import create_access_token, set_access_cookies
 from grader import app
 from grader.models import Student
 from grader.autograder.decorators import activity_exists, activity_prog_exists, checkpoint_exists, \
@@ -49,9 +49,7 @@ def login():
 @checkpoint_prog_exists
 def upload_file():
     data = request.form
-    # username = get_jwt_identity()
-    student = Student.query.filter_by(username=data["username"]).first()
-    # student = Student.query.filter_by(username=username).first()
+    student = Student.query.filter_by(email=data["email"]).first()
     checkpoint_prog = get_checkpoint_prog(data["activity_id"], data["checkpoint_id"], student.username)
 
     if "grading" in os.getcwd():
